@@ -1,9 +1,20 @@
-# RITUEL ↔ NEXUS LINK — préparation
+# RITUEL ↔ NEXUS LINK — migration sécurisée
 
-Le client commun `link-core.js` est maintenant présent dans ce dépôt **sans être chargé dans l'application**. Aucune routine ni donnée de stock n'est lue ou envoyée.
+Le client RITUEL est actif **uniquement** sur `https://rituel-web.q9pfwtztsc.workers.dev/`. La version GitHub Pages ne traite aucun jumelage et conserve sa base locale d'origine.
 
-La future connexion utilisera le relais chiffré `nexus-link-api`, les scopes prévus dans NEXUS (`restock_purchase`, `restock_task`, `product_paid`, `routine_schedule`, `routine_summary`) et la validation manuelle des propositions dans NEXUS.
+## Migration depuis l'iPhone
+1. Ouvrir l'ancienne RITUEL → Réglages → Ton suivi → **Sauvegarder mes données (.json)**.
+2. Dans Safari, ouvrir la nouvelle origine RITUEL sur Cloudflare, l'ajouter à l'écran d'accueil.
+3. Dans la nouvelle RITUEL → Réglages → Ton suivi → **Restaurer une sauvegarde**.
+4. Vérifier stock, historique et routines. Activer et tester les notifications iPhone sur la **nouvelle** installation.
+5. Dans NEXUS → Applications & connexions → RITUEL, activer les scopes souhaités et jumeler. Coller le code privé NXL1 dans RITUEL isolé → Réglages → NEXUS LINK.
+6. Tester un produit à racheter et vérifier sa proposition dans NEXUS. N'effacer l'ancienne installation qu'après vérification des données et push.
 
-**Précondition avant toute activation RITUEL :** isoler son origine HTTPS de celle de NEXUS. Actuellement, les deux PWA GitHub Pages utilisent des chemins de `leomgl.github.io` : cela ne suffit pas à isoler les données web. La migration devra préserver les installations iPhone, sauvegardes et abonnements push par export/restauration vérifiés.
+## Flux
+- `restock_purchase` : produit faible (stock ≤25%, réserve=0, ou prévision ≤7j) → Achats, montant non renseigné.
+- `restock_task` : stock faible → Rappels, date du premier signalement.
+- `product_paid` : **achat explicitement enregistré** avec date et prix → dépense réelle *à confirmer* dans NEXUS, jamais inférée par la hausse du stock.
+- `routine_schedule` : routines du matin/soir en événements ponctuels, pas des récurrences automatiques.
+- `routine_summary` : bilan 7 jours → note NEXUS.
 
-La connexion Gaming ↔ NEXUS est actuellement la seule prise en charge par une interface de jumelage ; elle ne partage pas de données métier.
+Toutes les propositions transitent chiffrées par NEXUS LINK, subissent une validation et sont dédoublonnées. Envoi manuel par défaut, automatique facultatif. Pas de clés supplémentaires pour la liaison. Les données locales des anciennes installations ne migrent pas automatiquement entre origines et un abonnement Web Push doit être réactivé sur la nouvelle origine.

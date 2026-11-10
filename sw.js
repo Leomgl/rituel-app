@@ -1,5 +1,5 @@
-const CACHE = 'rituel-v1.5';
-const FILES = ['./','./index.html','./styles.css','./app.js','./features.js','./push-config.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE = 'rituel-v1.6';
+const FILES = ['./','./index.html','./styles.css','./app.js','./features.js','./link-core.js','./rituel-nexus.js','./push-config.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));
 });

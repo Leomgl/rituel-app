@@ -123,3 +123,15 @@ button:disabled{cursor:not-allowed;opacity:.47}
 .stats-progress-fill{height:100%;background:#879f83;border-radius:10px;transition:width .35s}
 .stats-disclaimer{font-size:11px;color:#888f88;line-height:1.6;margin:0 4px 21px}
 @media(max-width:355px){.bottom-nav .nav-item{font-size:8px}.nav-icon svg{width:20px;height:20px}.stats-day{gap:5px}.stats-calendar{gap:5px}}
+
+/* RITUEL 1.6 — optional NEXUS LINK integration and actual purchase history */
+#rituel-link-panel{display:grid;gap:11px}
+#rituel-link-panel .primary-button,#rituel-link-panel .secondary-button{display:block;width:100%;text-align:center}
+#rituel-link-panel textarea{background:var(--card,#fff);border:1px solid #b8b8b8;border-radius:12px;padding:12px;font-size:12px}
+#rituel-link-panel .switch-row{margin:4px 0}
+.rituel-buy{display:block;width:100%;margin:12px 0 4px;padding:11px;border:1px solid #b4c4b8;border-radius:12px;font-weight:650}
+.rituel-purchase-list{border-top:1px solid #ddd;padding-top:13px}
+.rituel-purchase-list h3{font-size:14px}
+.rituel-purchase-entry{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:7px 0;font-size:12px}
+.rituel-purchase-entry button{font-size:11px;padding:7px;border-radius:8px;border:1px solid #ddd}
+@media(max-width:420px){.rituel-purchase-entry{align-items:flex-start;flex-direction:column}}

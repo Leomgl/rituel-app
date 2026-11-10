@@ -1,6 +1,8 @@
 import * as WebPush from '@portable/web-push';
 
 const ORIGIN = 'https://leomgl.github.io';
+const NEW_ORIGIN = 'https://rituel-web.q9pfwtztsc.workers.dev';
+const ALLOWED_ORIGINS = new Set([ORIGIN,NEW_ORIGIN]);
 const PUBLIC_APP_URL = 'https://leomgl.github.io/rituel-app/';
 const ALLOWED_HOSTS = ['push.apple.com', 'fcm.googleapis.com', 'push.services.mozilla.com'];
 const FLAG_NAMES = ['morning', 'evening', 'nudge', 'stock', 'special'];
@@ -25,6 +27,15 @@ function ensureSchema(env) {
           if(!(updated.results||[]).some(field=>field.name==='nudge_minutes'))throw error;
         }
       }
+      // New installations use a separate HTTPS origin; existing iPhone subscriptions keep their old destination.
+      const updated=await env.DB.prepare('PRAGMA table_info(devices)').all();
+      if(!(updated.results||[]).some(field=>field.name==='app_origin')){
+        try{await env.DB.prepare("ALTER TABLE devices ADD COLUMN app_origin TEXT NOT NULL DEFAULT 'https://leomgl.github.io'").run();}
+        catch(error){
+          const again=await env.DB.prepare('PRAGMA table_info(devices)').all();
+          if(!(again.results||[]).some(field=>field.name==='app_origin'))throw error;
+        }
+      }
     })().catch(error=>{schemaPromise=null;throw error;});
   }
   return schemaPromise;
@@ -33,8 +44,8 @@ function ensureSchema(env) {
 
 function cors(origin) {
   const headers = {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin'};
-  if (origin === ORIGIN) {
-    headers['Access-Control-Allow-Origin'] = ORIGIN;
+  if (ALLOWED_ORIGINS.has(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
     headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
     headers['Access-Control-Allow-Headers'] = 'Content-Type';
   }
@@ -95,7 +106,7 @@ function makeVapid(env) {
   return {publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY,subject:env.VAPID_SUBJECT};
 }
 async function sendDevice(row, env, kind, title, body, localDate) {
-  const payload=JSON.stringify({title,body,url:PUBLIC_APP_URL,tag:'rituel-'+kind,kind});
+  const payload=JSON.stringify({title,body,url:ALLOWED_ORIGINS.has(row.app_origin)?row.app_origin+'/':PUBLIC_APP_URL,tag:'rituel-'+kind,kind});
   const result=await WebPush.send({
     subscription:{endpoint:row.endpoint,keys:{p256dh:row.p256dh,auth:row.auth}},
     vapid:makeVapid(env),payload,ttl:3600,urgency:'normal'
@@ -206,7 +217,7 @@ export default {
     const url=new URL(request.url);
     if(url.pathname==='/api/health'&&request.method==='GET')
       return json({ok:true,service:'rituel-push'},200,origin);
-    if(origin!==ORIGIN) return json({error:'Origin not allowed'},403,origin);
+    if(!ALLOWED_ORIGINS.has(origin)) return json({error:'Origin not allowed'},403,origin);
     try{await ensureSchema(env);}catch(error){console.error('Schema not ready',String(error));return json({error:'Database not ready'},503,origin);}
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(origin)});
     if(url.pathname==='/api/config'&&request.method==='GET'){
@@ -226,11 +237,11 @@ export default {
       const args=[body.deviceId,hash,body.subscription.endpoint,body.subscription.keys.p256dh,body.subscription.keys.auth,
         prefs.timezone,prefs.morning,prefs.evening,...FLAG_NAMES.map(k=>prefs.flags[k]),prefs.nudgeMinutes];
       if(existing){
-        await env.DB.prepare('UPDATE devices SET endpoint=?,p256dh=?,auth=?,timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,nudge_minutes=?,last_seen=unixepoch() WHERE device_id=?')
-          .bind(...args.slice(2),body.deviceId).run();
+        await env.DB.prepare('UPDATE devices SET endpoint=?,p256dh=?,auth=?,timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,nudge_minutes=?,app_origin=?,last_seen=unixepoch() WHERE device_id=?')
+          .bind(...args.slice(2),origin,body.deviceId).run();
       }else{
-        await env.DB.prepare('INSERT INTO devices (device_id,token_hash,endpoint,p256dh,auth,timezone,morning_time,evening_time,morning_on,evening_on,nudge_on,stock_on,special_on,nudge_minutes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-          .bind(...args).run();
+        await env.DB.prepare('INSERT INTO devices (device_id,token_hash,endpoint,p256dh,auth,timezone,morning_time,evening_time,morning_on,evening_on,nudge_on,stock_on,special_on,nudge_minutes,app_origin) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+          .bind(...args,origin).run();
       }
       return json({ok:true},200,origin);
     }
