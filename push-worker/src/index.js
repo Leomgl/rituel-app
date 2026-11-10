@@ -5,6 +5,23 @@ const PUBLIC_APP_URL = 'https://leomgl.github.io/rituel-app/';
 const ALLOWED_HOSTS = ['push.apple.com', 'fcm.googleapis.com', 'push.services.mozilla.com'];
 const FLAG_NAMES = ['morning', 'evening', 'nudge', 'stock', 'special'];
 
+/* Auto-creates the tables on first use, so the initial deploy can be completed
+   from the Cloudflare dashboard on an iPhone without running migrations. */
+let schemaPromise;
+function ensureSchema(env) {
+  if (!schemaPromise) {
+    schemaPromise = (async()=>{
+      await env.DB.batch([
+        env.DB.prepare("CREATE TABLE IF NOT EXISTS devices (\n  device_id TEXT PRIMARY KEY,\n  token_hash TEXT NOT NULL,\n  endpoint TEXT NOT NULL,\n  p256dh TEXT NOT NULL,\n  auth TEXT NOT NULL,\n  timezone TEXT NOT NULL DEFAULT 'Europe/Paris',\n  morning_time TEXT NOT NULL DEFAULT '07:30',\n  evening_time TEXT NOT NULL DEFAULT '21:30',\n  morning_on INTEGER NOT NULL DEFAULT 1,\n  evening_on INTEGER NOT NULL DEFAULT 1,\n  nudge_on INTEGER NOT NULL DEFAULT 0,\n  stock_on INTEGER NOT NULL DEFAULT 0,\n  special_on INTEGER NOT NULL DEFAULT 0,\n  stock_low INTEGER NOT NULL DEFAULT 0,\n  done_date TEXT,\n  done_morning INTEGER NOT NULL DEFAULT 0,\n  done_evening INTEGER NOT NULL DEFAULT 0,\n  last_test INTEGER NOT NULL DEFAULT 0,\n  last_seen INTEGER NOT NULL DEFAULT (unixepoch())\n)"),
+        env.DB.prepare("CREATE TABLE IF NOT EXISTS delivery_log (\n  device_id TEXT NOT NULL,\n  local_date TEXT NOT NULL,\n  kind TEXT NOT NULL,\n  created_at INTEGER NOT NULL DEFAULT (unixepoch()),\n  PRIMARY KEY (device_id, local_date, kind)\n)"),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_delivery_log_created_at ON delivery_log(created_at)")
+      ]);
+    })().catch(error=>{schemaPromise=null;throw error;});
+  }
+  return schemaPromise;
+}
+
+
 function cors(origin) {
   const headers = {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin'};
   if (origin === ORIGIN) {
@@ -144,6 +161,7 @@ export default {
     if(url.pathname==='/api/health'&&request.method==='GET')
       return json({ok:true,service:'rituel-push'},200,origin);
     if(origin!==ORIGIN) return json({error:'Origin not allowed'},403,origin);
+    try{await ensureSchema(env);}catch(error){console.error('Schema not ready',String(error));return json({error:'Database not ready'},503,origin);}
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(origin)});
     if(url.pathname==='/api/config'&&request.method==='GET'){
       return json({ready:!!(env.VAPID_PUBLIC_KEY&&env.VAPID_PRIVATE_KEY&&env.VAPID_SUBJECT),
@@ -203,5 +221,5 @@ export default {
     }
     return json({error:'Not found'},404,origin);
   },
-  async scheduled(_event,env,ctx) {ctx.waitUntil(scheduled(env));}
+  async scheduled(_event,env,ctx) {ctx.waitUntil(ensureSchema(env).then(()=>scheduled(env)));}
 };
