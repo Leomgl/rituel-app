@@ -2,17 +2,29 @@
 
 Cette V1.4 sépare le site GitHub Pages (PWA) du serveur d'envoi Cloudflare Workers. **Ne pas confondre** : l'interface de réglages est déjà sur GitHub, mais aucune notification n'est envoyée tant que le Worker n'est pas déployé et relié à l'app.
 
+## État du déploiement (10 novembre 2026)
+
+- Worker Cloudflare existant : `rituel-app`.
+- URL du Worker : `https://rituel-app.q9pfwtztsc.workers.dev`.
+- Dépôt GitHub connecté et build déployé avec succès à partir de `/push-worker`.
+- Base D1 `rituel-push-db` et son binding `DB` configurés ; horaire Cron `*/5 * * * *` déployé.
+- RITUEL est relié à cette URL dans `push-config.js`.
+- **Blocage actuel :** le connecteur Cloudflare n'a pas la permission d'ajouter des secrets de Worker. Il reste à définir `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` et `VAPID_SUBJECT` dans les paramètres du Worker, ou à reconnecter Cloudflare avec l'autorisation Workers Editor/Workers Admin.
+- Ne pas recréer le Worker ou la base D1. Ne pas renommer le Worker sans modifier simultanément `wrangler.toml`.
+
 ## Prérequis
 
 - RITUEL installée sur l'écran d'accueil d'un iPhone iOS 16.4+ (ouverte depuis son icône, pas dans un simple onglet Safari).
 - Un compte Cloudflare. L'offre gratuite suffit normalement à ce volume personnel, dans la limite des quotas Cloudflare.
 - Un compte GitHub connecté à Cloudflare Workers Builds.
 
-## Installation 100 % navigateur / iPhone
+## Installation 100 % navigateur / iPhone (déjà effectuée pour les étapes 1 à 3 et 6)
+
+**Seules les étapes 4, 5, 7 et 8 restent à finaliser.**
 
 1. Dans Cloudflare > **Storage & databases > D1**, créer une base **rituel-push-db** (Cloudflare propose souvent la région Europe). Copier son **database_id** (UUID public de configuration, ne pas confondre avec une clé secrète).
 2. Ouvrir `push-worker/wrangler.toml` sur GitHub et remplacer `REPLACE_WITH_D1_DATABASE_UUID` par cet UUID. Le dépôt RITUEL contient déjà le code. Si besoin, demander à ChatGPT de mettre ce seul ID à jour.
-3. Dans Cloudflare > **Workers & Pages > Create application > Connect to GitHub**, choisir `Leomgl/rituel-app`. Définir le **Root directory : push-worker**, le nom du Worker : **rituel-push**, la branche `main`, le **Build command : npm install**, le **Deploy command : npx wrangler deploy**. Sauver et déployer. Le Worker initialise automatiquement ses tables D1 lors de la première requête.
+3. Dans Cloudflare > **Workers & Pages > Create application > Connect to GitHub**, choisir `Leomgl/rituel-app`. Définir le **Root directory : push-worker**, le nom du Worker : **rituel-app**, la branche `main`, le **Build command : npm install**, le **Deploy command : npx wrangler deploy**. Sauver et déployer. Le Worker initialise automatiquement ses tables D1 lors de la première requête.
 4. Générer les clés VAPID depuis un navigateur sur **https://leomgl.github.io/rituel-app/tools/vapid.html**. La génération est locale, dans le navigateur ; elle ne transmet pas tes clés. Une seule paire de clés pour toute l'installation.
 5. Dans Cloudflare > Worker `rituel-push` > **Settings > Variables and Secrets**, créer :
    - `VAPID_PUBLIC_KEY` : texte fourni par la page
