@@ -1,0 +1,14 @@
+name = "rituel-push"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+# Push scheduling: five-minute scan, with de-duplication by device/day/type.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Create a D1 database named rituel-push-db, then replace the UUID below.
+[[d1_databases]]
+binding = "DB"
+database_name = "rituel-push-db"
+database_id = "REPLACE_WITH_D1_DATABASE_UUID"
+migrations_dir = "migrations"
