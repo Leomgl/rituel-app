@@ -69,3 +69,13 @@ header.topbar::before {
 .stock-card .link-qualification{margin-top:0}
 .panel .small-fine{color:#868c84;font-size:11px;line-height:1.5;margin:12px 0 0}
 @media(max-width:360px){.stock-overview{gap:5px;padding:17px 10px}.stock-stat strong{font-size:23px}.stock-card-header{gap:8px}.stock-state{font-size:8px;padding:5px 6px}.nav-item{font-size:9px}}
+
+
+/* RITUEL 1.4 — web push settings and explicit iOS opt-in */
+.push-status{background:#f1efe8;border:1px solid #e9e5dd;color:#696f65;border-radius:11px;padding:11px 12px;font-weight:730;font-size:11px;line-height:1.5;margin-bottom:13px}
+.push-options{margin:15px 0 9px}
+.push-options .switch-row{padding:13px 1px}
+.push-actions{display:grid;gap:5px;padding-top:8px}
+.push-actions .danger-link{justify-self:start;font-weight:650;margin-top:8px}
+.push-fine{color:#899087;font-size:10px;line-height:1.55;margin:15px 0 0}
+button:disabled{cursor:not-allowed;opacity:.47}
