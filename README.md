@@ -1,6 +1,16 @@
-# RITUEL — mini-app de soins, version 1.0
+# RITUEL — mini-app de soins, version 1.3
 
 Une application web installable (PWA) pour un suivi matin/soir de 9 produits Rituals. Le projet fonctionne sans dépendances externes et les données restent sur l'appareil.
+
+## Stock et liens officiels
+
+- Inventaire des 9 produits avec niveau restant renseigné manuellement (0–100 %, par pas de 5 %).
+- Suivi des flacons de réserve (+ / −) et alertes de rachat à 25 % ou moins si aucune réserve.
+- Liens directs vers les fiches officielles Rituals ; les formats différents et anciennes références sont explicitement indiqués.
+- Les soins cochés ne déduisent pas automatiquement le stock, faute de dosage mesuré.
+- Les valeurs inconnues restent « À renseigner » : aucun niveau initial n'est inventé.
+- Bouton de vérification des mises à jour dans Réglages pour rafraîchir sans désinstaller l'application.
+- Le suivi et le stock restent locaux au navigateur/app. Sauvegarde JSON recommandée avant toute suppression de l'icône iOS.
 
 ## Fonctions
 
