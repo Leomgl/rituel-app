@@ -1,15 +1,26 @@
-# RITUEL — mini-app de soins, version 1.4
+# RITUEL — mini-app de soins, version 1.5
 
-Une application web installable (PWA) pour un suivi matin/soir de 9 produits Rituals. Le projet fonctionne sans dépendances externes et les données restent sur l'appareil.
+Une application web iPhone installable (PWA) pour les routines matin/soir de 9 produits Rituals. **Projet sans App Store ni frais récurrents**, avec fonctions hors ligne et données de suivi conservées sur l’appareil. Les notifications Web Push passent par Cloudflare Workers.
 
-## Push iPhone (V1.4 — serveur à activer)
+## Notre architecture réutilisable pour les prochaines apps
 
-La V1.4 ajoute les réglages de notifications dans RITUEL (routine matin/soir, rappel doux après 45 minutes, alerte stock faible et soins spéciaux). Les notifications nécessitent **un Worker Cloudflare** et une base D1, car GitHub Pages ne peut pas envoyer des push en arrière-plan.
+**[Lire le guide de création d’apps personnelles 100 % gratuites](docs/ARCHITECTURE-APPS-GRATUITES.md)** : prototype/test → GitHub → GitHub Pages (PWA iPhone) → Cloudflare Workers/D1 seulement si besoin de push ou d’automatisation → validation sur iPhone, sans abonnement Apple ni renouvellement de signature.
+
+## Nouveautés RITUEL 1.5
+
+- **Notifications intelligentes** : plusieurs formulations selon le jour ; pas de rappel de routine déjà terminée ; délai du second rappel au choix (30, 45, 60, 90 minutes), désactivé par défaut.
+- **Stock intelligent** : historique des niveaux manuels, estimation d'autonomie à partir de deux relevés datés espacés (jamais de consommation inventée), avertissement dès qu'il reste environ 7 jours sans réserve. L'alerte hebdomadaire utilise aussi ces prévisions après synchronisation.
+- **Statistiques** : nouvel onglet Stats, vues sur 7 ou 30 jours, régularité matin et soir, jours complets et série de jours consécutifs. Les jours antérieurs au premier soin coché ne sont pas imputés au suivi.
+- **Migration sans perte** : ancienne clé localStorage `rituel_personal_v1` préservée, nouveaux champs facultatifs initialisés automatiquement ; cache Service Worker `rituel-v1.5`. Export JSON recommandé avant toute désinstallation.
+
+## Push iPhone (V1.5 — Worker Cloudflare actif)
+
+RITUEL utilise un Worker Cloudflare `rituel-app` relié à la base D1 `rituel-push-db`. Le premier push a été validé sur iPhone. Les horaires, options et souscriptions sont conservés côté Worker ; les cases et niveaux détaillés restent locaux.
 
 - Sources : [push-worker](push-worker)
 - Configuration iPhone sans Mac : [Guide complet](docs/PUSH.md)
 - Générateur local de clés VAPID : [tools/vapid.html](tools/vapid.html)
-- Le site reste entièrement fonctionnel sans serveur push ; aucune autorisation n'est demandée tant que le service n'est pas relié.
+- Le site reste fonctionnel hors ligne ; l’autorisation de notifications n’est demandée qu’après action explicite.
 - Ne jamais mettre la clé privée VAPID dans le dépôt public.
 
 ## Stock et liens officiels
@@ -44,13 +55,12 @@ La V1.4 ajoute les réglages de notifications dans RITUEL (routine matin/soir, r
 
 Les ressources utilisent des URL relatives, adaptées au sous-dossier `/rituel-app/` de GitHub Pages. Le code et l'URL sont publics, mais les coches et réglages sont stockés dans `localStorage` de l'appareil. Changer d'adresse web ou effacer les données du site peut faire perdre le suivi ; une exportation JSON est disponible dans les réglages. GitHub Pages n'ajoute pas de notifications push ni de widget natif.
 
-## Mettre l'application sur iPhone
+## Installation et mise à jour depuis l'iPhone
 
-1. Décompresser le ZIP sur un ordinateur, sans changer l'arborescence.
-2. Déployer le **contenu du dossier `rituel-v1`**, en glissant ce dossier sur <https://app.netlify.com/drop>. On obtient une URL HTTPS. Les fichiers statiques n'ont pas besoin de compilation. L'URL sera publique par défaut, mais les cases cochées restent enregistrées localement sur le téléphone.
-3. Ouvrir l'URL dans **Safari sur l'iPhone**.
-4. Appuyer sur **Partager** → **Sur l'écran d'accueil** → activer « Ouvrir comme app » si proposé → **Ajouter**.
-5. Ouvrir l'icône RITUEL. Sans connexion après le premier chargement, le suivi reste utilisable grâce au cache hors ligne.
+1. Ouvrir **https://leomgl.github.io/rituel-app/** dans Safari.
+2. **Partager → Sur l'écran d'accueil → Ajouter** ; puis ouvrir RITUEL depuis son icône.
+3. Pour recevoir les dernières versions, utiliser **Réglages → Mises à jour de RITUEL** et rouvrir l'app.
+4. Ne pas supprimer l'icône pour mettre à jour : iOS peut perdre les données locales et la souscription push. Exporter le JSON si une désinstallation est indispensable.
 
 ## Mettre en place les rappels
 
