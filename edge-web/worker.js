@@ -23,7 +23,8 @@ export default {
    headers.set('origin','https://leomgl.github.io');
    headers.delete('cookie');
    headers.delete('host');
-   const forwarded=new Request(destination,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:request.body,redirect:'manual'});
+   headers.delete('content-length');
+   const forwarded=new Request(destination,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:request.body,duplex:'half',redirect:'manual'});
    const response=await worker.fetch(forwarded);
    const out=new Headers(response.headers);
    out.delete('access-control-allow-origin');
