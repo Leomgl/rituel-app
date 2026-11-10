@@ -1,6 +1,16 @@
-# RITUEL — mini-app de soins, version 1.3
+# RITUEL — mini-app de soins, version 1.4
 
 Une application web installable (PWA) pour un suivi matin/soir de 9 produits Rituals. Le projet fonctionne sans dépendances externes et les données restent sur l'appareil.
+
+## Push iPhone (V1.4 — serveur à activer)
+
+La V1.4 ajoute les réglages de notifications dans RITUEL (routine matin/soir, rappel doux après 45 minutes, alerte stock faible et soins spéciaux). Les notifications nécessitent **un Worker Cloudflare** et une base D1, car GitHub Pages ne peut pas envoyer des push en arrière-plan.
+
+- Sources : [push-worker](push-worker)
+- Configuration iPhone sans Mac : [Guide complet](docs/PUSH.md)
+- Générateur local de clés VAPID : [tools/vapid.html](tools/vapid.html)
+- Le site reste entièrement fonctionnel sans serveur push ; aucune autorisation n'est demandée tant que le service n'est pas relié.
+- Ne jamais mettre la clé privée VAPID dans le dépôt public.
 
 ## Stock et liens officiels
 
