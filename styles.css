@@ -27,3 +27,45 @@ header.topbar::before {
   background: var(--bg);
   pointer-events: none;
 }
+
+
+/* RITUEL 1.3 — inventory, product links and four-tab navigation */
+.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nav-item{min-width:0;font-size:10px}
+.nav-icon svg{width:23px;height:23px}
+.product-official-link,.stock-official-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#866943;font-weight:780;font-size:12px;margin-top:10px;min-height:28px}
+.product-official-link:focus-visible,.stock-official-link:focus-visible{outline:3px solid var(--accent);border-radius:5px}
+.link-qualification{display:block;color:#888d84;font-size:10px;margin:2px 0 0;line-height:1.4}
+.stock-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:20px 16px;border-radius:22px;background:linear-gradient(125deg,#252d2a,#141a19);color:#f7f6ee}
+.stock-stat{min-width:0;display:flex;flex-direction:column;gap:5px;align-items:center;text-align:center}
+.stock-stat strong{font-size:26px;line-height:1.1;font-weight:680;color:#f4eee1}
+.stock-stat span{font-size:10px;letter-spacing:.3px;color:#bfc7bf;line-height:1.35}
+.stock-stat+.stock-stat{border-left:1px solid #ffffff20}
+.stock-help{margin:15px 2px 20px;color:#777f78;font-size:12px;line-height:1.55}
+.stock-list{display:grid;gap:13px;margin-bottom:18px}
+.stock-card{padding:18px 17px 17px;border:1px solid #ebe6dd;background:var(--paper);border-radius:19px}
+.stock-card-header{display:flex;align-items:flex-start;gap:11px}
+.stock-card-index{display:grid;place-items:center;background:#eae5da;color:#a28763;flex:0 0 38px;width:38px;height:38px;border-radius:12px;font:18px Georgia,serif}
+.stock-card-info{min-width:0;flex:1}
+.stock-card-info h3{font-size:14px;margin:0 0 4px;line-height:1.35}
+.stock-card-info p{font-size:11px;color:#899089;margin:0 0 8px}
+.stock-state{display:inline-flex;font-size:9px;font-weight:800;padding:5px 8px;border-radius:6px;white-space:nowrap;letter-spacing:.2px;background:#ebeee9;color:#64776b}
+.stock-state.is-low{background:#f7eadc;color:#a57037}
+.stock-state.is-out{background:#f8e5e3;color:#a35c58}
+.stock-state.is-unknown{background:#eff0ea;color:#7a8079}
+.stock-level-head{display:flex;justify-content:space-between;align-items:center;margin-top:19px;gap:12px}
+.stock-level-head label{color:#707a71;font-size:12px;font-weight:750}
+.stock-level-head strong{font-size:14px;color:#303a34;white-space:nowrap}
+.stock-range{width:100%;accent-color:#988060;margin:14px 0 10px;height:26px;touch-action:pan-y}
+.stock-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.stock-quick{border-radius:9px;border:1px solid #e1dcd3;background:#f6f3ed;padding:8px 10px;color:#70634e;font-size:11px;font-weight:730;min-height:36px}
+.stock-reserve{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 0 0;margin-top:16px;border-top:1px solid #eeebe5}
+.stock-reserve-label{font-size:12px;color:#6b746d}
+.stock-reserve-controls{display:flex;gap:12px;align-items:center}
+.stock-reserve-controls button{background:#f1eee7;border:1px solid #e6e0d6;border-radius:9px;min-width:35px;height:35px;color:#46534a;font-size:19px;font-weight:700}
+.stock-reserve-controls button:disabled{opacity:.35}
+.stock-reserve-controls span{font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;min-width:18px;text-align:center}
+.stock-card .stock-official-link{margin-top:14px}
+.stock-card .link-qualification{margin-top:0}
+.panel .small-fine{color:#868c84;font-size:11px;line-height:1.5;margin:12px 0 0}
+@media(max-width:360px){.stock-overview{gap:5px;padding:17px 10px}.stock-stat strong{font-size:23px}.stock-card-header{gap:8px}.stock-state{font-size:8px;padding:5px 6px}.nav-item{font-size:9px}}
