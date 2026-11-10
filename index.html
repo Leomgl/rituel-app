@@ -11,7 +11,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=1.3">
+  <link rel="stylesheet" href="styles.css?v=1.4">
   <title>Rituel — Ma routine</title>
 </head>
 <body>
@@ -56,7 +56,21 @@
           <div class="switch-row"><div><b>J’ai un nettoyant visage</b><small>Pour un nettoyage doux, surtout le soir</small></div><label class="switch"><input type="checkbox" id="owns-cleanser"><span></span></label></div>
           <div class="switch-row"><div><b>J’ai une protection SPF</b><small>Ajoute la protection solaire au planning</small></div><label class="switch"><input type="checkbox" id="owns-spf"><span></span></label></div>
         </div>
-        <div class="panel"><h2>Tes rappels</h2><p class="muted">Deux alertes quotidiennes dans le Calendrier de l’iPhone, indépendantes de l’application.</p>
+        <div class="panel"><h2>Notifications iPhone</h2>
+          <p class="muted">Vraies notifications push de RITUEL sur l’écran verrouillé. Nécessite l’installation sur l’écran d’accueil et l’activation du service d’envoi.</p>
+          <div class="push-status" id="push-status" role="status">Vérification des notifications…</div>
+          <button type="button" class="primary-button" id="enable-push">Activer les notifications <span>↗</span></button>
+          <div class="push-options" id="push-options">
+            <div class="switch-row"><div><b>Routine du matin</b><small>À l’heure indiquée ci-dessous</small></div><label class="switch"><input type="checkbox" data-push-option="morning"><span></span></label></div>
+            <div class="switch-row"><div><b>Routine du soir</b><small>À l’heure indiquée ci-dessous</small></div><label class="switch"><input type="checkbox" data-push-option="evening"><span></span></label></div>
+            <div class="switch-row"><div><b>Petit rappel après 45 minutes</b><small>Seulement si la routine n’est pas terminée</small></div><label class="switch"><input type="checkbox" data-push-option="nudge"><span></span></label></div>
+            <div class="switch-row"><div><b>Stock faible</b><small>Le dimanche à 18 h si un produit est à racheter</small></div><label class="switch"><input type="checkbox" data-push-option="stock"><span></span></label></div>
+            <div class="switch-row"><div><b>Soins spéciaux</b><small>À 8 h les jours de shampooing et d’huile</small></div><label class="switch"><input type="checkbox" data-push-option="special"><span></span></label></div>
+          </div>
+          <div class="push-actions"><button type="button" class="secondary-button" id="test-push">Envoyer une notification test</button><button type="button" class="danger-link" id="disable-push">Désactiver les notifications</button></div>
+          <p class="push-fine">Tes préférences, l’état terminé/non terminé des routines et le nombre de produits à racheter sont transmis au service d’envoi lorsque tu actives les push. Le détail de tes produits et tes pourcentages de stock restent sur l’iPhone.</p>
+        </div>
+        <div class="panel"><h2>Tes rappels Calendrier</h2><p class="muted">Deux alertes quotidiennes dans le Calendrier de l’iPhone, indépendantes de l’application.</p>
           <div class="time-grid"><label>Le matin<input id="morning-time" type="time" value="07:30"></label><label>Le soir<input id="evening-time" type="time" value="21:30"></label></div>
           <button class="primary-button" id="export-ics">Exporter 2 rappels Calendrier <span>↗</span></button>
           <div class="tip"><b>Comment ça marche ?</b><p>Le fichier <code>.ics</code> contient deux événements récurrents avec alerte à l’heure choisie. Importe-le dans Calendrier (au besoin via ton Mac et iCloud). Ce sont des alertes du calendrier, pas des notifications Web Push.</p></div>
@@ -70,13 +84,14 @@
           <button class="secondary-button" id="refresh-app">Vérifier et charger la dernière version</button>
           <p class="small-fine">Avant de retirer l’app de l’écran d’accueil, exporte une sauvegarde : iOS peut supprimer les données locales lorsque tu retires l’application.</p>
         </div>
-        <div class="panel dark-panel"><div class="eyebrow light">SUR IPHONE</div><h2>Une app sur ton écran d’accueil</h2><p>Après publication sur une adresse HTTPS, ouvre cette adresse dans Safari puis touche Partager → Sur l’écran d’accueil → Ajouter.</p><p class="small-fine">Version 1.3 · PWA hors ligne · Pas de vrai widget iOS natif dans cette version.</p></div>
+        <div class="panel dark-panel"><div class="eyebrow light">SUR IPHONE</div><h2>Une app sur ton écran d’accueil</h2><p>Après publication sur une adresse HTTPS, ouvre cette adresse dans Safari puis touche Partager → Sur l’écran d’accueil → Ajouter.</p><p class="small-fine">Version 1.4 · PWA hors ligne · Pas de vrai widget iOS natif dans cette version.</p></div>
       </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Produits"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Produits</span></button><button class="nav-item" data-view="stock" aria-label="Stock"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3M12 12v4"/></svg></span><span>Stock</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
     <div id="toast" role="status" aria-live="polite"></div>
   </div>
-  <script src="app.js?v=1.3" defer></script>
+  <script src="push-config.js"></script>
+  <script src="app.js?v=1.4" defer></script>
 </body>
 </html>
