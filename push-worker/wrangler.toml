@@ -12,3 +12,9 @@ binding = "DB"
 database_name = "rituel-push-db"
 database_id = "7588e3e1-ebb7-4c15-b47e-e28533dc34ae"
 migrations_dir = "migrations"
+
+# Public, non-sensitive Web Push values. Keep VAPID_PRIVATE_KEY as a Cloudflare runtime Secret.
+# Wrangler will otherwise overwrite dashboard-defined plain-text variables on deploy.
+[vars]
+VAPID_PUBLIC_KEY = "BKmhFVcM0VtbmGPy_oSv1O573N0R6aiKgoxKJtQoVN0-HA4VCHB-O9zZuWnGgOxijb5TbnbKz8njaC5qZ0DMs20"
+VAPID_SUBJECT = "https://leomgl.github.io"
