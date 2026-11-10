@@ -11,7 +11,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=1.3">
   <title>Rituel — Ma routine</title>
 </head>
 <body>
@@ -42,6 +42,13 @@
         <div class="product-list" id="product-list"></div>
       </section>
 
+      <section class="view" id="stock-view" aria-label="Stock des produits">
+        <div class="intro"><div class="eyebrow">MON INVENTAIRE</div><h1>Mon stock <em>de soins.</em></h1><p>Garde un œil sur tes produits et retrouve leurs fiches officielles.</p></div>
+        <section class="stock-overview" id="stock-overview" aria-live="polite"></section>
+        <p class="stock-help">Règle le niveau restant de chaque produit. Les niveaux sont manuels : aucune consommation n’est déduite automatiquement de tes routines cochées.</p>
+        <div class="stock-list" id="stock-list"></div>
+      </section>
+
       <section class="view" id="settings-view" aria-label="Réglages et rappels">
         <div class="intro"><div class="eyebrow">PERSONNALISER</div><h1>À ton <em>rythme.</em></h1><p>Une routine qui s’adapte à tes journées.</p></div>
         <div class="panel"><h2>Ton organisation</h2><p class="muted">Quand prends-tu ta douche en général ?</p>
@@ -59,13 +66,17 @@
           <button class="secondary-button" id="import-backup" style="margin-top:9px">Restaurer une sauvegarde</button><input id="backup-file" type="file" accept="application/json,.json" hidden>
           <button class="danger-link" id="reset-data">Effacer mon suivi</button>
         </div>
-        <div class="panel dark-panel"><div class="eyebrow light">SUR IPHONE</div><h2>Une app sur ton écran d’accueil</h2><p>Après publication sur une adresse HTTPS, ouvre cette adresse dans Safari puis touche Partager → Sur l’écran d’accueil → Ajouter.</p><p class="small-fine">Version 1.0 · PWA hors ligne · Pas de vrai widget iOS natif dans cette version.</p></div>
+        <div class="panel"><h2>Mises à jour de RITUEL</h2><p class="muted">Pour récupérer la nouvelle version sans supprimer l’icône ni perdre tes données.</p>
+          <button class="secondary-button" id="refresh-app">Vérifier et charger la dernière version</button>
+          <p class="small-fine">Avant de retirer l’app de l’écran d’accueil, exporte une sauvegarde : iOS peut supprimer les données locales lorsque tu retires l’application.</p>
+        </div>
+        <div class="panel dark-panel"><div class="eyebrow light">SUR IPHONE</div><h2>Une app sur ton écran d’accueil</h2><p>Après publication sur une adresse HTTPS, ouvre cette adresse dans Safari puis touche Partager → Sur l’écran d’accueil → Ajouter.</p><p class="small-fine">Version 1.3 · PWA hors ligne · Pas de vrai widget iOS natif dans cette version.</p></div>
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Produits"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Produits</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
+    <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Produits"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Produits</span></button><button class="nav-item" data-view="stock" aria-label="Stock"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3M12 12v4"/></svg></span><span>Stock</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
     <div id="toast" role="status" aria-live="polite"></div>
   </div>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=1.3" defer></script>
 </body>
 </html>
