@@ -182,7 +182,7 @@ async function syncPushState(){
  const identity=pushIdentity();if(!identity)return;
  const date=localToday(),day=calendarDate(date),tasks=routines(date);
  const done=steps=>steps.filter(x=>!x.optional).every(x=>!!state.checks[day+':'+x.id]);
- const lowStock=products.filter(p=>{const v=stockEntry(p.id);return v.level!==null&&v.level<=25&&v.reserve===0;}).length;
+ const lowStock=products.filter(p=>{const v=stockEntry(p.id);return window.RITUEL_ENHANCED ? window.RITUEL_ENHANCED.needsRestock(p.id) : v.level!==null&&v.level<=25&&v.reserve===0;}).length;
  try{await pushPost('/api/state',{...identity,date:day,morningDone:done(tasks.morning),eveningDone:done(tasks.evening),lowStock});}
  catch(error){console.warn('Push state:',String(error));}
 }
