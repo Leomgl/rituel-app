@@ -1,4 +1,4 @@
-name = "rituel-push"
+name = "rituel-app"
 main = "src/index.js"
 compatibility_date = "2026-11-01"
 
@@ -6,7 +6,7 @@ compatibility_date = "2026-11-01"
 [triggers]
 crons = ["*/5 * * * *"]
 
-# Create a D1 database named rituel-push-db, then replace the UUID below.
+# D1 database rituel-push-db (already created and linked to this Worker).
 [[d1_databases]]
 binding = "DB"
 database_name = "rituel-push-db"
