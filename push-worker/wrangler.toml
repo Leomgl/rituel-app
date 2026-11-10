@@ -10,5 +10,5 @@ crons = ["*/5 * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "rituel-push-db"
-database_id = "REPLACE_WITH_D1_DATABASE_UUID"
+database_id = "7588e3e1-ebb7-4c15-b47e-e28533dc34ae"
 migrations_dir = "migrations"
