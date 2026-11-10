@@ -1,8 +1,8 @@
 'use strict';
 /* RITUEL V1 — self-contained personal skincare PWA. No analytics, server or external library. */
 const STORAGE_KEY='rituel_personal_v1';
-const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{}};
-function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
+const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{},stock:{}};
+function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{},stock:value.stock&&typeof value.stock==='object'?value.stock:{}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
 let state=load(), selectedDate=new Date(),view='today',category='Tous';
 const weekdayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortDays=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -25,6 +25,69 @@ const products=[
  {id:'oil',name:'Homme Hair & Beard Oil',group:'Barbe',amount:'30 ml',use:'2 gouttes chauffées entre les paumes, sur les longueurs.',why:'Assouplit et discipline la barbe.',tip:'Commencer mardi, jeudi et samedi, uniquement si besoin.'},
  {id:'hydrator',name:'Homme Beard Hydrator',group:'Barbe',amount:'30 ml',use:'1 pression pour commencer, masser sous la barbe.',why:'Hydrate la peau sous la barbe et assouplit les poils.',tip:'Attendre qu’il pénètre avant d’ajouter une éventuelle huile.'}
 ];
+
+/* Only official Rituals URLs. Sakura currently points to the matching larger format.
+   Hydrator references an older product page; availability can vary. */
+const productLinks={
+ anti:{url:'https://www.rituals.com/fr-fr/rituals-homme-48h-anti-perspirant-cream-50ml-1120537.html',label:'Fiche officielle'},
+ face:{url:'https://www.rituals.com/fr-fr/homme-24h-hydrating-face-cream-50ml-1120289.html',label:'Fiche officielle',note:'Format actuel : 50 ml (le tien : 20 ml)'},
+ shampoo:{url:'https://www.rituals.com/fr-fr/homme-strengthening-caffeine-shampoo-70ml-1122488.html',label:'Fiche officielle'},
+ serum:{url:'https://www.rituals.com/fr-fr/homme-thirst-quencher-hydrating-skin-concentrate-1120271.html',label:'Fiche officielle'},
+ aftershave:{url:'https://www.rituals.com/fr-fr/homme-after-shave-refreshing-gel-1120290.html',label:'Fiche officielle'},
+ sakura:{url:'https://www.rituals.com/fr-fr/the-ritual-of-sakura-body-cream-220ml-1118773.html',label:'Voir le format actuel',note:'Même gamme, 220 ml au lieu de ton tube 50 ml'},
+ foam:{url:'https://www.rituals.com/fr-fr/rituals-homme-shower-foam-50ml-1119070.html',label:'Fiche officielle'},
+ oil:{url:'https://www.rituals.com/fr-fr/homme-hair-beard-oil-1120294.html',label:'Fiche officielle'},
+ hydrator:{url:'https://www.rituals.com/fr-fr/homme-beard-hydrator-1116297.html',label:'Ancienne fiche Rituals',note:'Ancienne référence : disponibilité non garantie'}
+};
+function productLink(p){
+ const item=productLinks[p.id];
+ if(!item)return '';
+ return '<a class="product-official-link" href="'+item.url+'" target="_blank" rel="noopener noreferrer">'+item.label+' ↗</a>'+(item.note?'<small class="link-qualification">'+item.note+'</small>':'');
+}
+function stockEntry(id){
+ const raw=state.stock&&state.stock[id]&&typeof state.stock[id]==='object'?state.stock[id]:{};
+ const level=Number.isFinite(raw.level)?Math.max(0,Math.min(100,Math.round(raw.level/5)*5)):null;
+ const reserve=Number.isInteger(raw.reserve)?Math.max(0,Math.min(99,raw.reserve)):0;
+ return {level,reserve};
+}
+function setStock(id,change){
+ const current=stockEntry(id);
+ state.stock[id]={...current,...change};
+ save();
+ renderStock();
+ renderProducts();
+}
+function stockStatus(stock){
+ if(stock.level===null)return {label:'À renseigner',cls:'is-unknown'};
+ if(stock.level===0&&stock.reserve===0)return {label:'Épuisé',cls:'is-out'};
+ if(stock.level<=25&&stock.reserve===0)return {label:'À racheter',cls:'is-low'};
+ if(stock.level<=25&&stock.reserve>0)return {label:'Réserve disponible',cls:''};
+ return {label:'En stock',cls:''};
+}
+function renderStock(){
+ const items=products.map(p=>({product:p,stock:stockEntry(p.id)}));
+ const low=items.filter(v=>v.stock.level!==null&&v.stock.level<=25&&v.stock.reserve===0).length;
+ const unknown=items.filter(v=>v.stock.level===null).length;
+ el('stock-overview').innerHTML=
+   '<div class="stock-stat"><strong>'+products.length+'</strong><span>Produits</span></div>'+
+   '<div class="stock-stat"><strong>'+low+'</strong><span>À racheter</span></div>'+
+   '<div class="stock-stat"><strong>'+unknown+'</strong><span>À renseigner</span></div>';
+ el('stock-list').innerHTML=items.map(({product:p,stock:v})=>{
+   const status=stockStatus(v);
+   return '<article class="stock-card">'+
+    '<div class="stock-card-header"><span class="stock-card-index">'+String(products.indexOf(p)+1).padStart(2,'0')+'</span>'+
+    '<div class="stock-card-info"><h3>'+p.name+'</h3><p>'+p.group+' · '+p.amount+'</p><span class="stock-state '+status.cls+'">'+status.label+'</span></div></div>'+
+    '<div class="stock-level-head"><label for="stock-range-'+p.id+'">Niveau restant</label><strong data-level-output="'+p.id+'">'+(v.level===null?'Non renseigné':v.level+' %')+'</strong></div>'+
+    '<input class="stock-range" id="stock-range-'+p.id+'" type="range" min="0" max="100" step="5" value="'+(v.level===null?100:v.level)+'" data-stock-range="'+p.id+'" aria-label="Niveau restant de '+p.name+'">'+
+    '<div class="stock-controls"><button type="button" class="stock-quick" data-stock-action="full" data-product-id="'+p.id+'">Plein · 100 %</button><button type="button" class="stock-quick" data-stock-action="empty" data-product-id="'+p.id+'">Terminé · 0 %</button></div>'+
+    '<div class="stock-reserve"><span class="stock-reserve-label">Flacons de réserve</span><div class="stock-reserve-controls">'+
+    '<button type="button" data-stock-reserve="-1" data-product-id="'+p.id+'" aria-label="Retirer une réserve de '+p.name+'" '+(v.reserve<=0?'disabled':'')+'>−</button>'+
+    '<span aria-label="'+v.reserve+' en réserve">'+v.reserve+'</span>'+
+    '<button type="button" data-stock-reserve="1" data-product-id="'+p.id+'" aria-label="Ajouter une réserve de '+p.name+'" '+(v.reserve>=99?'disabled':'')+'>+</button></div></div>'+
+    '<div>'+productLink(p)+'</div></article>';
+ }).join('');
+}
+
 const build=(id,title,amount,detail,tip,optional=false)=>({id,title,amount,detail,tip,optional});
 function showerTasks(date){const weekday=date.getDay();let steps=[build('foam','Mousse de douche Homme','Une petite noisette','Sur le corps mouillé, faire mousser puis rincer.','C’est un produit pour le corps, pas un nettoyant visage.')];
  if([1,3,5].includes(weekday))steps.push(build('shampoo','Shampooing à la caféine','Une noisette','Masser le cuir chevelu, rincer soigneusement.','3 fois par semaine pour commencer. Si tes cheveux regraissent vite, ajuste.'));
@@ -52,9 +115,9 @@ function renderRoutine(kind,tasks,date){let essential=tasks.filter(t=>!t.optiona
  if(am)html+=`<div class="shave-banner"><button class="shave-toggle ${state.shaveDays[calendarDate(date)]?'on':''}" id="shave-toggle">✂ ${state.shaveDays[calendarDate(date)]?'Rasage prévu : oui · enlever':'J’ai rasé / je rase mes contours aujourd’hui'}</button></div>`;
  el(am?'morning-routine':'evening-routine').innerHTML=html;}
 function renderToday(){const date=selectedDate,prog=essentialProgress(date),label=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}).format(date),isCurrent=isToday(date);el('date-line').textContent=(isCurrent?'AUJOURD’HUI · ':'')+label.toLocaleUpperCase('fr-FR');el('selected-day-label').textContent=isCurrent?'Les soins d’aujourd’hui':label;el('hero-title').textContent=prog.percent===100?'C’est fait. Bravo !':prog.completed===0?'Un geste à la fois.':'Tu es sur ta lancée.';el('hero-desc').textContent=`${prog.completed} sur ${prog.total} soins essentiels effectués`;el('progress-pct').textContent=`${prog.percent}%`;el('progress-disc').style.setProperty('--pct',`${prog.percent}%`);el('progress-disc').setAttribute('aria-label',`${prog.percent}% des soins essentiels effectués`);renderWeek();const steps=routines(date);renderRoutine('morning',steps.morning,date);renderRoutine('evening',steps.evening,date);}
-function renderProducts(){const groups=['Tous','Visage','Barbe','Cheveux','Corps'];el('category-filter').innerHTML=groups.map(g=>`<button class="filter-button ${category===g?'active':''}" data-category="${g}" aria-pressed="${category===g}">${g}</button>`).join('');el('product-list').innerHTML=products.filter(p=>category==='Tous'||p.group===category).map((p,i)=>`<article class="product-card"><div class="product-head"><span class="product-index">${String(products.indexOf(p)+1).padStart(2,'0')}</span><div><span class="category">${p.group} · ${p.amount}</span><h3>${p.name}</h3><p class="subtitle">${p.why}</p></div></div><p class="product-dose"><b>Application :</b> ${p.use}</p><p><b>Conseil :</b> ${p.tip}</p></article>`).join('');}
+function renderProducts(){const groups=['Tous','Visage','Barbe','Cheveux','Corps'];el('category-filter').innerHTML=groups.map(g=>`<button class="filter-button ${category===g?'active':''}" data-category="${g}" aria-pressed="${category===g}">${g}</button>`).join('');el('product-list').innerHTML=products.filter(p=>category==='Tous'||p.group===category).map((p,i)=>`<article class="product-card"><div class="product-head"><span class="product-index">${String(products.indexOf(p)+1).padStart(2,'0')}</span><div><span class="category">${p.group} · ${p.amount}</span><h3>${p.name}</h3><p class="subtitle">${p.why}</p></div></div><p class="product-dose"><b>Application :</b> ${p.use}</p><p><b>Conseil :</b> ${p.tip}</p>${productLink(p)}</article>`).join('');}
 function renderSettings(){document.querySelectorAll('[data-shower]').forEach(b=>{const active=b.dataset.shower===state.showerTime;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});el('owns-cleanser').checked=state.owns.cleanser;el('owns-spf').checked=state.owns.spf;el('morning-time').value=state.times.morning;el('evening-time').value=state.times.evening;}
-function render(){renderToday();renderProducts();renderSettings();}
+function render(){renderToday();renderProducts();renderStock();renderSettings();}
 function navigate(where){view=where;document.querySelectorAll('.view').forEach(s=>s.classList.toggle('is-visible',s.id===`${where}-view`));document.querySelectorAll('.nav-item').forEach(b=>{b.classList.toggle('active',b.dataset.view===where);b.setAttribute('aria-current',b.dataset.view===where?'page':'false');});window.scrollTo({top:0,behavior:'instant'});}
 // Native calendar export. The floating local times are interpreted in the importing calendar's timezone.
 function icsTimestamp(d){return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}00`;}
@@ -65,6 +128,36 @@ function downloadFile(filename,content,mime){const blob=new Blob([content],{type
 function exportICS(){const content=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Rituel//Routine Personnelle V1//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH',dailyEvent('Rituel — routine du matin',state.times.morning,'matin'),dailyEvent('Rituel — routine du soir',state.times.evening,'soir'),'END:VCALENDAR'].join('\r\n')+'\r\n';downloadFile('rituel-rappels-matin-soir.ics',content,'text/calendar;charset=utf-8');toast('Fichier Calendrier créé · à importer dans ton agenda.');}
 function bind(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.view)));el('settings-shortcut').addEventListener('click',()=>navigate('settings'));el('go-today').addEventListener('click',()=>{selectedDate=localToday();renderToday();});el('week-strip').addEventListener('click',e=>{const b=e.target.closest('[data-iso]');if(!b)return;const [y,m,d]=b.dataset.iso.split('-').map(Number);selectedDate=new Date(y,m-1,d);renderToday();});
  for(const id of ['morning-routine','evening-routine']){const area=el(id);area.addEventListener('change',e=>{const t=e.target;if(!t.matches('[data-task]'))return;state.checks[`${calendarDate(selectedDate)}:${t.dataset.task}`]=t.checked;save();renderToday();});area.addEventListener('click',e=>{const detail=e.target.closest('[data-detail]');if(detail){const tip=area.querySelector(`[data-tip="${detail.dataset.detail}"]`);tip.hidden=!tip.hidden;detail.setAttribute('aria-expanded',!tip.hidden);return;}const shave=e.target.closest('#shave-toggle');if(shave){const key=calendarDate(selectedDate);state.shaveDays[key]=!state.shaveDays[key];save();renderToday();}});}
+
+ el('stock-list').addEventListener('input',e=>{
+   const input=e.target.closest('[data-stock-range]');if(!input)return;
+   const out=el('stock-list').querySelector('[data-level-output="'+input.dataset.stockRange+'"]');
+   if(out)out.textContent=input.value+' %';
+ });
+ el('stock-list').addEventListener('change',e=>{
+   const input=e.target.closest('[data-stock-range]');if(!input)return;
+   setStock(input.dataset.stockRange,{level:Number(input.value)});
+ });
+ el('stock-list').addEventListener('click',e=>{
+   const control=e.target.closest('[data-stock-action],[data-stock-reserve]');
+   if(!control)return;
+   const id=control.dataset.productId;
+   if(!productLinks[id])return;
+   if(control.dataset.stockAction==='full')setStock(id,{level:100});
+   if(control.dataset.stockAction==='empty')setStock(id,{level:0});
+   if(control.dataset.stockReserve){
+     const step=Number(control.dataset.stockReserve);
+     setStock(id,{reserve:Math.max(0,Math.min(99,stockEntry(id).reserve+step))});
+   }
+ });
+ el('refresh-app').addEventListener('click',async()=>{
+   if(!navigator.onLine){toast('Connexion nécessaire pour vérifier les mises à jour.');return;}
+   try{if('serviceWorker' in navigator){const registration=await navigator.serviceWorker.getRegistration();if(registration)await registration.update();}}
+   catch(error){/* A reload will still request fresh files. */}
+   const target=new URL(window.location.href);
+   target.searchParams.set('maj',String(Date.now()));
+   window.location.replace(target.href);
+ });
  el('category-filter').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;category=b.dataset.category;renderProducts();});document.querySelectorAll('[data-shower]').forEach(b=>b.addEventListener('click',()=>{state.showerTime=b.dataset.shower;save();render();toast('Moment de douche mis à jour.');}));el('owns-cleanser').addEventListener('change',e=>{state.owns.cleanser=e.target.checked;save();render();});el('owns-spf').addEventListener('change',e=>{state.owns.spf=e.target.checked;save();render();});for(const [id,key] of [['morning-time','morning'],['evening-time','evening']])el(id).addEventListener('change',e=>{if(/^\d\d:\d\d$/.test(e.target.value)){state.times[key]=e.target.value;save();renderToday();}else{e.target.value=state.times[key];}});
  el('export-ics').addEventListener('click',exportICS);el('export-backup').addEventListener('click',()=>{downloadFile(`rituel-sauvegarde-${calendarDate(localToday())}.json`,JSON.stringify({format:'rituel-v1',exportedAt:new Date().toISOString(),data:state},null,2),'application/json');toast('Sauvegarde locale téléchargée.');});el('import-backup').addEventListener('click',()=>el('backup-file').click());
  el('backup-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const raw=JSON.parse(await file.text());if(raw.format!=='rituel-v1'||!raw.data||typeof raw.data!=='object'||!raw.data.checks||typeof raw.data.checks!=='object')throw Error('Format non reconnu');if(!confirm('Restaurer cette sauvegarde ? Ton suivi actuel sera remplacé.'))return;localStorage.setItem(STORAGE_KEY,JSON.stringify(raw.data));state=load();selectedDate=localToday();render();toast('Sauvegarde restaurée.');}catch(err){toast('Fichier de sauvegarde invalide.');}finally{e.target.value='';}});
@@ -72,4 +165,4 @@ function bind(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventList
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isToday(selectedDate)){selectedDate=localToday();renderToday();}});
 }
 bind();render();navigate('today');
-if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').then(reg=>{if(navigator.onLine)reg.update().catch(()=>{});}).catch(()=>{});
