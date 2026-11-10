@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#151819">
+  <meta name="description" content="Rituel — ta routine de soins personnelle, matin et soir.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rituel">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Rituel — Ma routine</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="Rituel, ta routine de soins"><span class="brand-mark">R<span class="mark-dot">.</span></span><span class="brand-word">RITUEL<span class="brand-sub">SOINS QUOTIDIENS</span></span></div>
+      <button class="icon-button" id="settings-shortcut" aria-label="Ouvrir les réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.07.07-1.9 1.9-.07-.07A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1.1 1.57V20h-2.8v-.03A1.7 1.7 0 0 0 11 18.4a1.7 1.7 0 0 0-1.88.34l-.07.07-1.9-1.9.07-.07A1.7 1.7 0 0 0 7.6 15a1.7 1.7 0 0 0-1.57-1.1H6v-2.8h.03A1.7 1.7 0 0 0 7.6 10a1.7 1.7 0 0 0-.34-1.88l-.07-.07 1.9-1.9.07.07A1.7 1.7 0 0 0 11 6.6a1.7 1.7 0 0 0 1.1-1.57V5h2.8v.03A1.7 1.7 0 0 0 16 6.6a1.7 1.7 0 0 0 1.88-.34l.07-.07 1.9 1.9-.07.07A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.57 1.1H21v2.8h-.03A1.7 1.7 0 0 0 19.4 15Z" transform="translate(-1,-1)"/></svg></button>
+    </header>
+
+    <main>
+      <section class="view is-visible" id="today-view" aria-label="Planning quotidien">
+        <div class="intro"><div class="eyebrow" id="date-line">MON JOUR</div><h1>Prends soin <em>de toi.</em></h1><p>Un rituel simple, à ton rythme.</p></div>
+        <section class="hero-card" aria-label="Progression du jour">
+          <div><span class="eyebrow light">TA PROGRESSION</span><div class="hero-title" id="hero-title">Un geste à la fois.</div><p class="hero-desc" id="hero-desc">Tes soins du jour t’attendent.</p></div>
+          <div class="progress-disc" id="progress-disc" role="img" aria-label="Progression quotidienne"><div class="disc-core"><strong id="progress-pct">0%</strong><span>DU JOUR</span></div></div>
+        </section>
+        <div class="section-head week-head"><div><div class="eyebrow">PLANIFICATION</div><h2>Cette semaine</h2></div><button id="go-today" class="text-button">Aujourd’hui ↗</button></div>
+        <div class="week-strip" id="week-strip" role="group" aria-label="Choisir un jour"></div>
+        <div class="period-label"><span class="small-line"></span><span id="selected-day-label">Aujourd’hui</span><span class="small-line"></span></div>
+        <div class="routine-section" id="morning-routine"></div>
+        <div class="routine-section" id="evening-routine"></div>
+        <aside class="note-card"><span class="note-icon">✦</span><div><b>Un conseil pour ta peau mixte</b><p>Sur le front et le nez, garde la main légère avec la crème. Sous la barbe, privilégie le gel hydratant et réserve l’huile aux longueurs.</p></div></aside>
+      </section>
+
+      <section class="view" id="products-view" aria-label="Mes neuf produits">
+        <div class="intro"><div class="eyebrow">TA COLLECTION</div><h1>Les essentiels <em>du rituel.</em></h1><p>9 produits, avec leur rôle et leur mode d’emploi.</p></div>
+        <div class="category-filter" id="category-filter" aria-label="Filtrer les produits"></div>
+        <div class="product-list" id="product-list"></div>
+      </section>
+
+      <section class="view" id="settings-view" aria-label="Réglages et rappels">
+        <div class="intro"><div class="eyebrow">PERSONNALISER</div><h1>À ton <em>rythme.</em></h1><p>Une routine qui s’adapte à tes journées.</p></div>
+        <div class="panel"><h2>Ton organisation</h2><p class="muted">Quand prends-tu ta douche en général ?</p>
+          <div class="segmented" role="group" aria-label="Horaire de douche"><button type="button" data-shower="matin">Le matin</button><button type="button" data-shower="soir">Le soir</button></div>
+          <div class="switch-row"><div><b>J’ai un nettoyant visage</b><small>Pour un nettoyage doux, surtout le soir</small></div><label class="switch"><input type="checkbox" id="owns-cleanser"><span></span></label></div>
+          <div class="switch-row"><div><b>J’ai une protection SPF</b><small>Ajoute la protection solaire au planning</small></div><label class="switch"><input type="checkbox" id="owns-spf"><span></span></label></div>
+        </div>
+        <div class="panel"><h2>Tes rappels</h2><p class="muted">Deux alertes quotidiennes dans le Calendrier de l’iPhone, indépendantes de l’application.</p>
+          <div class="time-grid"><label>Le matin<input id="morning-time" type="time" value="07:30"></label><label>Le soir<input id="evening-time" type="time" value="21:30"></label></div>
+          <button class="primary-button" id="export-ics">Exporter 2 rappels Calendrier <span>↗</span></button>
+          <div class="tip"><b>Comment ça marche ?</b><p>Le fichier <code>.ics</code> contient deux événements récurrents avec alerte à l’heure choisie. Importe-le dans Calendrier (au besoin via ton Mac et iCloud). Ce sont des alertes du calendrier, pas des notifications Web Push.</p></div>
+        </div>
+        <div class="panel"><h2>Ton suivi</h2><p class="muted">Les cases cochées restent enregistrées sur cet appareil, sans compte.</p>
+          <button class="secondary-button" id="export-backup">Sauvegarder mes données (.json)</button>
+          <button class="secondary-button" id="import-backup" style="margin-top:9px">Restaurer une sauvegarde</button><input id="backup-file" type="file" accept="application/json,.json" hidden>
+          <button class="danger-link" id="reset-data">Effacer mon suivi</button>
+        </div>
+        <div class="panel dark-panel"><div class="eyebrow light">SUR IPHONE</div><h2>Une app sur ton écran d’accueil</h2><p>Après publication sur une adresse HTTPS, ouvre cette adresse dans Safari puis touche Partager → Sur l’écran d’accueil → Ajouter.</p><p class="small-fine">Version 1.0 · PWA hors ligne · Pas de vrai widget iOS natif dans cette version.</p></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Produits"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Produits</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>
