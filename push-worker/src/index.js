@@ -16,6 +16,15 @@ function ensureSchema(env) {
         env.DB.prepare("CREATE TABLE IF NOT EXISTS delivery_log (\n  device_id TEXT NOT NULL,\n  local_date TEXT NOT NULL,\n  kind TEXT NOT NULL,\n  created_at INTEGER NOT NULL DEFAULT (unixepoch()),\n  PRIMARY KEY (device_id, local_date, kind)\n)"),
         env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_delivery_log_created_at ON delivery_log(created_at)")
       ]);
+      // Additive migration for devices created before RITUEL v1.5.
+      const fields=await env.DB.prepare('PRAGMA table_info(devices)').all();
+      if(!(fields.results||[]).some(field=>field.name==='nudge_minutes')){
+        try{await env.DB.prepare('ALTER TABLE devices ADD COLUMN nudge_minutes INTEGER NOT NULL DEFAULT 45').run();}
+        catch(error){
+          const updated=await env.DB.prepare('PRAGMA table_info(devices)').all();
+          if(!(updated.results||[]).some(field=>field.name==='nudge_minutes'))throw error;
+        }
+      }
     })().catch(error=>{schemaPromise=null;throw error;});
   }
   return schemaPromise;
@@ -44,7 +53,8 @@ function safePrefs(p) {
   const timezone=typeof value.timezone==='string' && value.timezone.length<90 ? value.timezone : 'Europe/Paris';
   try {new Intl.DateTimeFormat('en-US',{timeZone:timezone});}
   catch {throw new Error('Invalid timezone');}
-  return {morning,evening,timezone,flags:Object.fromEntries(FLAG_NAMES.map(k=>[k,bool(flags[k])]))};
+  const nudgeMinutes=[30,45,60,90].includes(value.nudgeMinutes)?value.nudgeMinutes:45;
+  return {morning,evening,timezone,nudgeMinutes,flags:Object.fromEntries(FLAG_NAMES.map(k=>[k,bool(flags[k])]))};
 }
 function idOk(v){return typeof v==='string' && /^[a-zA-Z0-9_-]{20,100}$/.test(v);}
 async function tokenHash(s) {
@@ -107,11 +117,43 @@ function near(clockMin, hhmm){
   const diff=clockMin-(h*60+m);
   return diff>=0&&diff<5;
 }
-function nudgeNear(clockMin,hhmm){
+function nudgeNear(clockMin,hhmm,delay=45){
   const [h,m]=hhmm.split(':').map(Number);
-  const target=h*60+m+45;
+  const target=h*60+m+delay;
   return target<1440 && clockMin>=target&&clockMin<target+5;
 }
+// Deterministic variation (same copy for the same device/day, no third-party AI).
+function notificationCopy(kind,day,deviceId){
+  const messages={
+    morning:[
+      ['RITUEL · Bonjour ☀️','Ton rituel du matin t’attend. À ton rythme !'],
+      ['RITUEL · Nouveau jour ✨','Quelques minutes pour bien commencer la journée.'],
+      ['RITUEL · Moment pour toi ☀️','Tes soins du matin sont prêts.'],
+      ['RITUEL · Petit départ 🌿','Le bon moment pour prendre soin de ta peau.']
+    ],
+    evening:[
+      ['RITUEL · Bonne soirée 🌙','Prends quelques minutes pour ta routine du soir.'],
+      ['RITUEL · Place au calme 🌿','Tes soins du soir t’attendent.'],
+      ['RITUEL · À ton rythme 🌙','Un petit rituel avant de terminer la journée.'],
+      ['RITUEL · Douce soirée ✨','C’est l’heure de prendre soin de toi.']
+    ],
+    'nudge-morning':[
+      ['Encore quelques soins ? ☀️','Ta routine du matin n’est pas terminée.'],
+      ['RITUEL · Petit rappel 🌿','Tu peux finir tes soins du matin quand tu veux.']
+    ],
+    'nudge-evening':[
+      ['Un dernier geste ? 🌙','Il reste des soins à cocher ce soir.'],
+      ['RITUEL · Petit rappel ✨','Ta routine du soir est encore incomplète.']
+    ]
+  };
+  const texts=messages[kind]||messages.morning;
+  let hash=0;for(const c of day+':'+deviceId+':'+kind)hash=(hash*31+c.charCodeAt(0))>>>0;
+  return texts[hash%texts.length];
+}
+function completedFor(row,day,kind){
+  return row.done_date===day && (kind==='morning'?!!row.done_morning:!!row.done_evening);
+}
+
 async function deliverOnce(row, env, kind, day, title, body) {
   const reserved=await env.DB.prepare('INSERT OR IGNORE INTO delivery_log (device_id, local_date, kind) VALUES (?,?,?)').bind(row.device_id,day,kind).run();
   if(!reserved.meta?.changes)return;
@@ -130,17 +172,21 @@ async function scheduled(env){
     const day=clock.date;
     const isMonWedFri=['Mon','Wed','Fri'].includes(clock.weekday);
     const isTueThuSat=['Tue','Thu','Sat'].includes(clock.weekday);
-    if(row.morning_on&&near(clock.minute,row.morning_time)){
-      await deliverOnce(row,env,'morning',day,'RITUEL · Bonjour ☀️','Ta routine du matin t’attend. Quelques minutes pour toi.');
+    if(row.morning_on && !completedFor(row,day,'morning') && near(clock.minute,row.morning_time)){
+      const copy=notificationCopy('morning',day,row.device_id);
+      await deliverOnce(row,env,'morning',day,...copy);
     }
-    if(row.evening_on&&near(clock.minute,row.evening_time)){
-      await deliverOnce(row,env,'evening',day,'RITUEL · Bonne soirée 🌙','C’est le moment de ta routine du soir.');
+    if(row.evening_on && !completedFor(row,day,'evening') && near(clock.minute,row.evening_time)){
+      const copy=notificationCopy('evening',day,row.device_id);
+      await deliverOnce(row,env,'evening',day,...copy);
     }
-    if(row.nudge_on && row.morning_on && (row.done_date!==day || !row.done_morning) && nudgeNear(clock.minute,row.morning_time)){
-      await deliverOnce(row,env,'nudge-morning',day,'Un petit rappel ☀️','Ta routine du matin n’est pas encore terminée.');
+    if(row.nudge_on && row.morning_on && !completedFor(row,day,'morning') && nudgeNear(clock.minute,row.morning_time,row.nudge_minutes)){
+      const copy=notificationCopy('nudge-morning',day,row.device_id);
+      await deliverOnce(row,env,'nudge-morning',day,...copy);
     }
-    if(row.nudge_on && row.evening_on && (row.done_date!==day || !row.done_evening) && nudgeNear(clock.minute,row.evening_time)){
-      await deliverOnce(row,env,'nudge-evening',day,'Encore un geste ? 🌙','Il reste quelques soins à cocher ce soir.');
+    if(row.nudge_on && row.evening_on && !completedFor(row,day,'evening') && nudgeNear(clock.minute,row.evening_time,row.nudge_minutes)){
+      const copy=notificationCopy('nudge-evening',day,row.device_id);
+      await deliverOnce(row,env,'nudge-evening',day,...copy);
     }
     if(row.stock_on && row.stock_low>0 && clock.weekday==='Sun' && near(clock.minute,'18:00')){
       await deliverOnce(row,env,'stock',day,'RITUEL · Stock à prévoir 📦',row.stock_low+' produit(s) à racheter. Consulte ton inventaire.');
@@ -178,12 +224,12 @@ export default {
       const existing=await env.DB.prepare('SELECT token_hash FROM devices WHERE device_id=?').bind(body.deviceId).first();
       if(existing&&existing.token_hash!==hash)return json({error:'Forbidden'},403,origin);
       const args=[body.deviceId,hash,body.subscription.endpoint,body.subscription.keys.p256dh,body.subscription.keys.auth,
-        prefs.timezone,prefs.morning,prefs.evening,...FLAG_NAMES.map(k=>prefs.flags[k])];
+        prefs.timezone,prefs.morning,prefs.evening,...FLAG_NAMES.map(k=>prefs.flags[k]),prefs.nudgeMinutes];
       if(existing){
-        await env.DB.prepare('UPDATE devices SET endpoint=?,p256dh=?,auth=?,timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,last_seen=unixepoch() WHERE device_id=?')
+        await env.DB.prepare('UPDATE devices SET endpoint=?,p256dh=?,auth=?,timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,nudge_minutes=?,last_seen=unixepoch() WHERE device_id=?')
           .bind(...args.slice(2),body.deviceId).run();
       }else{
-        await env.DB.prepare('INSERT INTO devices (device_id,token_hash,endpoint,p256dh,auth,timezone,morning_time,evening_time,morning_on,evening_on,nudge_on,stock_on,special_on) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+        await env.DB.prepare('INSERT INTO devices (device_id,token_hash,endpoint,p256dh,auth,timezone,morning_time,evening_time,morning_on,evening_on,nudge_on,stock_on,special_on,nudge_minutes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
           .bind(...args).run();
       }
       return json({ok:true},200,origin);
@@ -192,8 +238,8 @@ export default {
     if(!row)return json({error:'Unknown device / unauthorized'},403,origin);
     if(url.pathname==='/api/preferences'){
       let p;try{p=safePrefs(body.preferences);}catch{return json({error:'Invalid preferences'},400,origin);}
-      await env.DB.prepare('UPDATE devices SET timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,last_seen=unixepoch() WHERE device_id=?')
-        .bind(p.timezone,p.morning,p.evening,...FLAG_NAMES.map(k=>p.flags[k]),body.deviceId).run();
+      await env.DB.prepare('UPDATE devices SET timezone=?,morning_time=?,evening_time=?,morning_on=?,evening_on=?,nudge_on=?,stock_on=?,special_on=?,nudge_minutes=?,last_seen=unixepoch() WHERE device_id=?')
+        .bind(p.timezone,p.morning,p.evening,...FLAG_NAMES.map(k=>p.flags[k]),p.nudgeMinutes,body.deviceId).run();
       return json({ok:true},200,origin);
     }
     if(url.pathname==='/api/state'){
