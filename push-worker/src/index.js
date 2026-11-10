@@ -119,10 +119,10 @@ async function scheduled(env){
     if(row.evening_on&&near(clock.minute,row.evening_time)){
       await deliverOnce(row,env,'evening',day,'RITUEL · Bonne soirée 🌙','C’est le moment de ta routine du soir.');
     }
-    if(row.nudge_on && row.done_date===day && row.morning_on && !row.done_morning && nudgeNear(clock.minute,row.morning_time)){
+    if(row.nudge_on && row.morning_on && (row.done_date!==day || !row.done_morning) && nudgeNear(clock.minute,row.morning_time)){
       await deliverOnce(row,env,'nudge-morning',day,'Un petit rappel ☀️','Ta routine du matin n’est pas encore terminée.');
     }
-    if(row.nudge_on && row.done_date===day && row.evening_on && !row.done_evening && nudgeNear(clock.minute,row.evening_time)){
+    if(row.nudge_on && row.evening_on && (row.done_date!==day || !row.done_evening) && nudgeNear(clock.minute,row.evening_time)){
       await deliverOnce(row,env,'nudge-evening',day,'Encore un geste ? 🌙','Il reste quelques soins à cocher ce soir.');
     }
     if(row.stock_on && row.stock_low>0 && clock.weekday==='Sun' && near(clock.minute,'18:00')){
