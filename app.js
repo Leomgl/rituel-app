@@ -1,8 +1,8 @@
 'use strict';
 /* RITUEL V1 — self-contained personal skincare PWA. No analytics, server or external library. */
 const STORAGE_KEY='rituel_personal_v1';
-const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{},stock:{},pushPrefs:{morning:true,evening:true,nudge:false,stock:false,special:false}};
-function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{},stock:value.stock&&typeof value.stock==='object'?value.stock:{},pushPrefs:{...DEFAULT.pushPrefs,...(value.pushPrefs||{})}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
+const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{},stock:{},stockHistory:{},nudgeMinutes:45,pushPrefs:{morning:true,evening:true,nudge:false,stock:false,special:false}};
+function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{},stock:value.stock&&typeof value.stock==='object'?value.stock:{},stockHistory:value.stockHistory&&typeof value.stockHistory==='object'?value.stockHistory:{},nudgeMinutes:[30,45,60,90].includes(value.nudgeMinutes)?value.nudgeMinutes:45,pushPrefs:{...DEFAULT.pushPrefs,...(value.pushPrefs||{})}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
 let state=load(), selectedDate=new Date(),view='today',category='Tous';
 const weekdayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortDays=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
