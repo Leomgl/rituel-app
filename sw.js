@@ -23,7 +23,7 @@ self.addEventListener('push', event => {
   try{if(event.data)payload={...payload,...event.data.json()};}catch{if(event.data)payload.body=event.data.text();}
   const title=String(payload.title||'RITUEL').slice(0,100);
   const body=String(payload.body||'Ton rituel t’attend.').slice(0,250);
-  const target=new URL(payload.url||'./index.html',self.location.origin+self.registration.scope);
+  const target=new URL(payload.url||'./index.html',self.registration.scope);
   // Never allow an external notification payload to open a third-party origin.
   const safeUrl=target.origin===self.location.origin?target.href:new URL('./index.html',self.registration.scope).href;
   event.waitUntil(self.registration.showNotification(title,{
