@@ -6,7 +6,7 @@
  const migrating=location.origin!==NEW_ORIGIN;
  const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const today=()=>calendarDate(localToday());
- const validDate=v=>typeof v==='string'&&/^\d{4}-\d\d-\d\d$/.test(v)&&new Date(v+'T12:00:00').toISOString().startsWith(v);
+ const validDate=v=>typeof v==='string'&&/^\d{4}-\d\d-\d\d$/.test(v)&&Number.isFinite(new Date(v+'T12:00:00').getTime())&&new Date(v+'T12:00:00').toISOString().startsWith(v);
  const str=(v,n=140)=>String(v??'').trim().slice(0,n);
  const safeEuro=v=>{const raw=String(v||'').trim().replace(/\s/g,'').replace(',','.');
   if(!/^\d{1,7}(?:\.\d{1,2})?$/.test(raw))return null;
