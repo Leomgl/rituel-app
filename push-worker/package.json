@@ -9,7 +9,7 @@
     "migrate": "wrangler d1 migrations apply rituel-push-db --remote"
   },
   "dependencies": {
-    "@portable/web-push": "^1.0.0"
+    "@portable/web-push": "*"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
