@@ -1,0 +1,4 @@
+# RITUEL isolated Cloudflare worker
+This Worker serves public static assets from the existing `leomgl/rituel-app` GitHub Pages build under its own origin, without modifying the old RITUEL PWA. It requires two internal Cloudflare Worker service bindings: `RITUEL_PUSH -> rituel-app`, `NEXUS_API -> nexus-app-api`. API requests stay same-origin in the browser and forward only through those bindings after rejecting other browser origins. Do not pass arbitrary proxy URLs or expose legacy origin localStorage. The RITUEL Web Push service worker rewrites foreign notification URLs to its own scope.
+
+Use `rituel-web.q9pfwtztsc.workers.dev` to install a separate iPhone PWA. Export on GitHub Pages and import the JSON at the new origin. Push subscriptions must be re-enabled; do not uninstall the old app before verifying both state and pushes.
