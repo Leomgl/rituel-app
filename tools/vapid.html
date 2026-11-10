@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>RITUEL · Clés Web Push</title>
+<style>:root{color-scheme:dark}body{font:16px -apple-system,BlinkMacSystemFont,Arial,sans-serif;background:#181e1c;color:#f3efe7;margin:0;padding:25px;max-width:560px}h1{font-family:Georgia,serif;font-weight:normal}p{line-height:1.5;color:#c1c8c0}button{border:0;background:#e1c29b;color:#222;padding:13px 18px;border-radius:12px;font-weight:700;margin:6px 6px 6px 0;cursor:pointer}label{display:block;font-size:13px;margin:16px 0 5px;color:#ead4b6}textarea{width:100%;box-sizing:border-box;border:1px solid #526057;border-radius:11px;background:#29312d;color:#fff;padding:11px;font:13px monospace;resize:vertical}small{display:block;color:#b7c2bb;line-height:1.5;margin-top:18px}.hidden{display:none}</style></head>
+<body><h1>Clés de notifications RITUEL</h1><p>Génère une paire VAPID <strong>directement dans le navigateur</strong>. Rien n'est envoyé à un serveur. Garde la clé privée dans les Secrets de Cloudflare, jamais sur GitHub.</p>
+<button id="generate">Générer mes clés</button><div id="result" class="hidden"><label>VAPID_PUBLIC_KEY — variable Cloudflare non secrète</label><textarea readonly rows="4" id="pub"></textarea><button data-copy="pub">Copier la clé publique</button>
+<label>VAPID_PRIVATE_KEY — Secret Cloudflare uniquement</label><textarea readonly rows="3" id="priv"></textarea><button data-copy="priv">Copier la clé privée</button>
+<label>VAPID_SUBJECT — URL de contact</label><textarea readonly rows="2" id="subject">https://leomgl.github.io</textarea><button data-copy="subject">Copier le contact</button></div>
+<small>Attention : ne clique pas sur « Générer » une seconde fois après avoir commencé à recevoir des push, sauf si tu comptes réinscrire tes appareils. Ne communique jamais la clé privée dans une conversation, un commit ou une capture.</small>
+<script>
+const fromB64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));
+const toB64=b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+document.getElementById('generate').addEventListener('click',async()=>{
+ const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const pub=await crypto.subtle.exportKey('jwk',pair.publicKey);
+ const priv=await crypto.subtle.exportKey('jwk',pair.privateKey);
+ const key=new Uint8Array(65);key[0]=4;key.set(fromB64(pub.x),1);key.set(fromB64(pub.y),33);
+ document.getElementById('pub').value=toB64(key);
+ document.getElementById('priv').value=priv.d;
+ document.getElementById('result').classList.remove('hidden');
+});
+document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
+ const field=document.getElementById(b.dataset.copy);
+ try{await navigator.clipboard.writeText(field.value);b.textContent='Copié ✓';}
+ catch{field.focus();field.select();b.textContent='Sélectionné : utilise Copier';}
+}));
+</script></body></html>
