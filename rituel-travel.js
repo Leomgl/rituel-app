@@ -116,7 +116,6 @@
    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
    pending=pending.filter(x=>x.id!==id);
    window.RITUEL_TROUSSE?.hydrate();
-   renderKits();
    try{await window.NexusLinkCore.acknowledge(pair,id);}catch{ /* revisit + idempotent ACK next refresh */ }
    toast(action==='accept'?'Ta trousse de voyage est prête.':'Suggestion ignorée.');
   }catch(e){toast('Enregistrement impossible : '+String(e.message).slice(0,85))}
