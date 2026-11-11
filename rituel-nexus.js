@@ -82,7 +82,8 @@
    if(!scopes.has(scope))return;
    const payload={type:'rituel.proposal.v1',sourceApp:'rituel',destination:dest,
      sourceId:str(id),title:str(title),game:str(product,100),details:str(details,500),
-     date:validDate(date)?date:'',time,priceCents:Number.isSafeInteger(price)?price:null,season:null};
+     date:validDate(date)?date:'',time,priceCents:Number.isSafeInteger(price)?price:null,
+     currency:'EUR',isPaid:scope==='product_paid',paymentDate:scope==='product_paid'&&validDate(date)?date:'',season:null};
    out.push({id:scope+':'+id+':'+dest,scope,payload});
   };
   let changed=false;
