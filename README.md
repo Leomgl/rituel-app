@@ -95,3 +95,14 @@ Puis ouvrir `http://localhost:8080/` dans le navigateur. En mode `file://`, le c
 - `icons/` — icônes.
 
 Le projet est indépendant et n'est ni une application officielle ni affilié à Rituals.
+
+
+## NEXUS Connect 2.0 (11 novembre 2026)
+
+Les produits achetés **explicitement** dans RITUEL sont publiés au format chiffré `rituel.proposal.v1` (scope `product_paid`) avec `currency: "EUR"`, `isPaid: true`, `paymentDate` (date confirmée) et `priceCents`. Une baisse de stock, un réassort supposé ou un rappel de routine **n'est pas** un achat réellement payé.
+
+NEXUS V0.19 peut enregistrer ces achats au Journal lorsque l'utilisateur active l'option **Produit Rituel payé → Budget** dans ses réglages Connect 2.0 ; sinon, validation manuelle comme auparavant. Les doublons sont bloqués par l'identifiant source stable, même après un nouveau jumelage. Les corrections nécessitent une confirmation manuelle. La source de vérité du stock et des routines reste RITUEL.
+
+Aucun changement du stock, des routines, des données locales ni du protocole cryptographique existant. Les modifications réelles doivent être vérifiées sur l'origine isolée de RITUEL ; ne pas désinstaller la PWA pour actualiser.
+
+[Contrat NEXUS Connect 2.0](https://github.com/Leomgl/nexus-app/blob/main/docs/CONNECT-V019.md)
