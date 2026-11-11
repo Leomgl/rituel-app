@@ -1,10 +1,22 @@
-# RITUEL — mini-app de soins, version 1.5
+# RITUEL — soins, collection et trousses, version 1.7
 
-Une application web iPhone installable (PWA) pour les routines matin/soir de 9 produits Rituals. **Projet sans App Store ni frais récurrents**, avec fonctions hors ligne et données de suivi conservées sur l’appareil. Les notifications Web Push passent par Cloudflare Workers.
+Une application web iPhone installable (PWA) pour les routines matin/soir, le stock de soins, les parfums et les trousses de voyage. **Projet sans App Store ni frais récurrents**, avec fonctions hors ligne et données de suivi conservées sur l’appareil. Les notifications Web Push passent par Cloudflare Workers.
 
 ## Notre architecture réutilisable pour les prochaines apps
 
 **[Lire le guide de création d’apps personnelles 100 % gratuites](docs/ARCHITECTURE-APPS-GRATUITES.md)** : prototype/test → GitHub → GitHub Pages (PWA iPhone) → Cloudflare Workers/D1 seulement si besoin de push ou d’automatisation → validation sur iPhone, sans abonnement Apple ni renouvellement de signature.
+
+## Nouveautés RITUEL 1.7 — Trousse
+
+- **Collection unique :** les 9 soins historiques restent dans les routines. Ajoute des parfums, accessoires et autres produits hors routine, avec catégorie, mode d’emploi, conseils, tags et lien HTTPS vers la boutique.
+- **Stock commun :** les nouveaux produits partagent les niveaux et réserves existants, leurs relevés d’autonomie et les achats déclarés dans NEXUS LINK. Aucun achat ni consommation automatique.
+- **Photos :** une photo par produit, y compris les soins historiques. Import depuis l’iPhone, compressée en JPEG 640 px, enregistrée uniquement dans le stockage local et incluse dans l’export JSON. Pas de service payant ni d’envoi photo vers NEXUS.
+- **Mes trousses :** modèles personnalisables, sélection de produits et indispensables hors stock, checklist à cocher et réinitialiser hors ligne. Modèle « Week-end · 2 nuits » créé au premier démarrage.
+- **Produit d’exemple :** Rituals Silver Suede (50 ml), hors routine, conseils et accès à la collection de parfums sur le site officiel (pas de lien inventé vers une fiche individuelle).
+- **Navigation :** l’onglet Produits devient Trousse, avec deux sous-onglets Collection et Mes trousses ; la barre du bas reste à cinq boutons.
+- **Intégration NEXUS voyage :** NON encore active ; le schéma d’échange et les garanties souhaitées figurent dans [docs/TROUSSE-V17.md](docs/TROUSSE-V17.md). NEXUS/Gaming ne sont pas modifiés par cette livraison.
+
+**Migration :** conserver la même clé `rituel_personal_v1`. Le champ `trousse` est optionnel pour les anciennes sauvegardes et est recréé au premier chargement ; les champs de routine sont conservés. Le cache PWA est `rituel-v1.7.0`. Tester et exporter une sauvegarde avant une réinstallation iPhone.
 
 ## Nouveautés RITUEL 1.5
 
