@@ -16,7 +16,7 @@
   why:"Eau de parfum · The Founder's Collection · cassis, daim et bois de santal.",
   use:'Vaporiser légèrement sur une peau propre, notamment le cou ou les poignets.',
   tip:'Éviter de frotter la peau après application. Conserver à l’écart de la chaleur et de la lumière.',
-  shopUrl:'https://www.rituals.com/fr-fr/parfums/boise',tags:'parfum, sortie, week-end',
+  shopUrl:'https://www.rituals.com/fr-fr/parfums/boise',ritualsSku:'1120736',tags:'parfum, sortie, week-end',
   travel:true
  };
  const initialKit={
@@ -27,6 +27,14 @@
  let selectedKit='trousse-kit-weekend',mode='catalog',search='',photoFor=null,pendingPhoto=null,editingId=null,editingKit=null;
  const q=id=>document.getElementById(id);
  const hasPhoto=src=>typeof src==='string'&&src.length<550000&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
+ const officialSkus={anti:'1120537',face:'1120289',shampoo:'1122488',serum:'1120271',aftershave:'1120290',sakura:'1118773',foam:'1119070',oil:'1120294',hydrator:'1116297','trousse-silver-suede':'1120736'};
+ const officialImage=(p)=>{
+  const sku=/^\d{7,10}$/.test(p?.ritualsSku||'')?p.ritualsSku:officialSkus[p?.id];
+  if(!sku)return null;
+  // Official Rituals product asset convention, not an uploaded or locally cached photo.
+  return 'https://www.rituals.com/assets/'+sku+'/packshot/product%3ASquare?fmt=webp-alpha&resMode=sharp2';
+ };
+ const imageError=img=>{img.addEventListener('error',()=>{img.remove();},{once:true});};
  const data=()=>state.trousse;
 
  function ensure(){
@@ -46,7 +54,7 @@
    id:clean(p.id,100),name:clean(p.name),brand:clean(p.brand,80),
    group:clean(p.group,45)||'Divers',amount:clean(p.amount,45),
    why:clean(p.why,350),use:clean(p.use,500),tip:clean(p.tip,500),
-   shopUrl:safeShopURL(p.shopUrl),tags:clean(p.tags,220),travel:p.travel!==false
+   shopUrl:safeShopURL(p.shopUrl),ritualsSku:/^\d{7,10}$/.test(p.ritualsSku||'')?p.ritualsSku:'',tags:clean(p.tags,220),travel:p.travel!==false
   };
  }
  function hydrate(){
@@ -64,13 +72,13 @@
   if(category!=='Tous'&&!products.some(p=>p.group===category))category='Tous';
   if(!t.kits.some(k=>k.id===selectedKit))selectedKit=t.kits[0]?.id||null;
  }
- function imageOf(id){const src=data()?.photos?.[id];return hasPhoto(src)?src:null;}
+ function imageOf(id){const src=data()?.photos?.[id];return hasPhoto(src)?src:officialImage(byId(id));}
  function decorateProducts(){
   const current=products.filter(p=>category==='Tous'||p.group===category);
   q('product-list')?.querySelectorAll('.product-card').forEach((card,index)=>{
    const p=current[index];if(!p)return;
    const head=card.querySelector('.product-head'),img=imageOf(p.id);
-   if(img&&head){const photo=document.createElement('img');photo.src=img;photo.alt='Photo de '+p.name;photo.loading='lazy';photo.className='trousse-product-photo';head.prepend(photo);}
+   if(img&&head){const photo=document.createElement('img');photo.src=img;photo.alt='Photo de '+p.name;photo.loading='lazy';photo.className='trousse-product-photo';imageError(photo);head.prepend(photo);}
    const actions=document.createElement('div');actions.className='trousse-card-actions';
    const photoButton=document.createElement('button');photoButton.type='button';photoButton.dataset.troussePhoto=p.id;photoButton.textContent=img?'Changer la photo':'Ajouter une photo';actions.append(photoButton);
    if(p.id.startsWith('trousse-')){
@@ -86,7 +94,7 @@
    const p=products[index],img=p&&imageOf(p.id);
    if(!img)return;
    const head=card.querySelector('.stock-card-header');if(!head)return;
-   const photo=document.createElement('img');photo.src=img;photo.alt='';photo.loading='lazy';photo.className='trousse-stock-photo';head.insertBefore(photo,head.firstChild);
+   const photo=document.createElement('img');photo.src=img;photo.alt='';photo.loading='lazy';photo.className='trousse-stock-photo';imageError(photo);head.insertBefore(photo,head.firstChild);
   });
  }
  const oldProducts=renderProducts;
@@ -117,7 +125,7 @@
   const p=editingId?byId(editingId):null;
   const form=q('trousse-product-form');form.reset();
   q('trousse-product-title').textContent=p?'Modifier le produit':'Nouveau produit';
-  for(const field of ['name','brand','group','amount','why','use','tip','shopUrl','tags']){
+  for(const field of ['name','brand','group','amount','why','use','tip','shopUrl','ritualsSku','tags']){
    const input=form.elements.namedItem(field);if(input)input.value=p?.[field]||'';
   }
   form.elements.namedItem('travel').checked=p?.travel!==false;
@@ -173,7 +181,7 @@
   const id=editingId||'trousse-'+newId();
   const p=productData({
    id,name,brand:fields.get('brand'),group:fields.get('group'),amount:fields.get('amount'),
-   why:fields.get('why'),use:fields.get('use'),tip:fields.get('tip'),shopUrl:url,
+   why:fields.get('why'),use:fields.get('use'),tip:fields.get('tip'),shopUrl:url,ritualsSku:fields.get('ritualsSku'),
    tags:fields.get('tags'),travel:fields.has('travel')
   });
   const t=ensure(),index=t.items.findIndex(v=>v.id===id);
@@ -221,7 +229,8 @@
   }
   area.innerHTML='<div class="trousse-section-head"><p>Prépare tes essentiels, coche ce qui est dans le sac et réutilise tes modèles.</p><button type="button" class="trousse-add" id="trousse-add-kit">+ Créer une trousse</button></div>'+
    '<div class="trousse-kit-list">'+(list||'<div class="trousse-empty">Aucune trousse pour le moment.</div>')+'</div>'+detail+
-   '<p class="trousse-nexus-note"><b>NEXUS × RITUEL</b> · Les trousses fonctionnent déjà hors ligne. La suggestion automatique à partir du calendrier sera branchée séparément, avec ton accord.</p>';
+   '<p class="trousse-nexus-note"><b>NEXUS × RITUEL</b> · Les trousses restent disponibles hors ligne.</p>';
+  area.querySelectorAll('.trousse-pack-row img').forEach(imageError);
  }
  function openKit(id=null){
   editingKit=id;
