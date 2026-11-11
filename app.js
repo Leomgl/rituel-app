@@ -1,8 +1,8 @@
 'use strict';
 /* RITUEL V1 — self-contained personal skincare PWA. No analytics, server or external library. */
 const STORAGE_KEY='rituel_personal_v1';
-const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{},stock:{},stockHistory:{},purchaseLog:[],nudgeMinutes:45,pushPrefs:{morning:true,evening:true,nudge:false,stock:false,special:false}};
-function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{},stock:value.stock&&typeof value.stock==='object'?value.stock:{},stockHistory:value.stockHistory&&typeof value.stockHistory==='object'?value.stockHistory:{},purchaseLog:Array.isArray(value.purchaseLog)?value.purchaseLog.filter(x=>x&&typeof x.id==='string'&&typeof x.productId==='string'&&typeof x.date==='string'&&Number.isSafeInteger(x.priceCents)&&x.priceCents>0).slice(-500):[],nudgeMinutes:[30,45,60,90].includes(value.nudgeMinutes)?value.nudgeMinutes:45,pushPrefs:{...DEFAULT.pushPrefs,...(value.pushPrefs||{})}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
+const DEFAULT={showerTime:'matin',times:{morning:'07:30',evening:'21:30'},owns:{cleanser:false,spf:false},checks:{},shaveDays:{},stock:{},stockHistory:{},trousse:null,purchaseLog:[],nudgeMinutes:45,pushPrefs:{morning:true,evening:true,nudge:false,stock:false,special:false}};
+function load(){try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {showerTime:value.showerTime==='soir'?'soir':'matin',times:{...DEFAULT.times,...(value.times||{})},owns:{...DEFAULT.owns,...(value.owns||{})},checks:value.checks&&typeof value.checks==='object'?value.checks:{},shaveDays:value.shaveDays&&typeof value.shaveDays==='object'?value.shaveDays:{},stock:value.stock&&typeof value.stock==='object'?value.stock:{},stockHistory:value.stockHistory&&typeof value.stockHistory==='object'?value.stockHistory:{},trousse:value.trousse&&typeof value.trousse==='object'?value.trousse:null,purchaseLog:Array.isArray(value.purchaseLog)?value.purchaseLog.filter(x=>x&&typeof x.id==='string'&&typeof x.productId==='string'&&typeof x.date==='string'&&Number.isSafeInteger(x.priceCents)&&x.priceCents>0).slice(-500):[],nudgeMinutes:[30,45,60,90].includes(value.nudgeMinutes)?value.nudgeMinutes:45,pushPrefs:{...DEFAULT.pushPrefs,...(value.pushPrefs||{})}};}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
 let state=load(), selectedDate=new Date(),view='today',category='Tous';
 const weekdayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortDays=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -14,6 +14,8 @@ const localToday=()=>new Date();
 const isToday=d=>calendarDate(d)===calendarDate(localToday());
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){toast('Stockage local indisponible sur cet appareil.');}}
 function toast(msg){const box=el('toast');box.textContent=msg;box.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>box.classList.remove('show'),3200);}
+const htmlSafe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeShopURL=raw=>{try{const url=new URL(raw);return url.protocol==='https:'?url.href:''}catch{return ''}};
 const products=[
  {id:'anti',name:'48h Anti-Perspirant Cream',group:'Corps',amount:'50 ml',use:'Fine couche sur les aisselles propres et sèches.',why:'Contrôle de la transpiration et des odeurs.',tip:'Plutôt le soir ; éviter les zones irritées.'},
  {id:'face',name:'24H Hydrating Face Cream',group:'Visage',amount:'20 ml',use:'Une petite noisette sur le visage et le cou.',why:'Crème hydratante quotidienne.',tip:'Moins sur le front et le nez, davantage sur les joues.'},
@@ -40,9 +42,9 @@ const productLinks={
  hydrator:{url:'https://www.rituals.com/fr-fr/homme-beard-hydrator-1116297.html',label:'Ancienne fiche Rituals',note:'Ancienne référence : disponibilité non garantie'}
 };
 function productLink(p){
- const item=productLinks[p.id];
+ const item=productLinks[p.id]||(safeShopURL(p.shopUrl)?{url:safeShopURL(p.shopUrl),label:'Voir la boutique'}:null);
  if(!item)return '';
- return '<a class="product-official-link" href="'+item.url+'" target="_blank" rel="noopener noreferrer">'+item.label+' ↗</a>'+(item.note?'<small class="link-qualification">'+item.note+'</small>':'');
+ return '<a class="product-official-link" href="'+htmlSafe(item.url)+'" target="_blank" rel="noopener noreferrer">'+htmlSafe(item.label)+' ↗</a>'+(item.note?'<small class="link-qualification">'+htmlSafe(item.note)+'</small>':'');
 }
 function stockEntry(id){
  const raw=state.stock&&state.stock[id]&&typeof state.stock[id]==='object'?state.stock[id]:{};
@@ -77,14 +79,14 @@ function renderStock(){
    const status=stockStatus(v);
    return '<article class="stock-card">'+
     '<div class="stock-card-header"><span class="stock-card-index">'+String(products.indexOf(p)+1).padStart(2,'0')+'</span>'+
-    '<div class="stock-card-info"><h3>'+p.name+'</h3><p>'+p.group+' · '+p.amount+'</p><span class="stock-state '+status.cls+'">'+status.label+'</span></div></div>'+
+    '<div class="stock-card-info"><h3>'+htmlSafe(p.name)+'</h3><p>'+htmlSafe(p.group)+' · '+htmlSafe(p.amount)+'</p><span class="stock-state '+status.cls+'">'+status.label+'</span></div></div>'+
     '<div class="stock-level-head"><label for="stock-range-'+p.id+'">Niveau restant</label><strong data-level-output="'+p.id+'">'+(v.level===null?'Non renseigné':v.level+' %')+'</strong></div>'+
-    '<input class="stock-range" id="stock-range-'+p.id+'" type="range" min="0" max="100" step="5" value="'+(v.level===null?100:v.level)+'" data-stock-range="'+p.id+'" aria-label="Niveau restant de '+p.name+'">'+
+    '<input class="stock-range" id="stock-range-'+p.id+'" type="range" min="0" max="100" step="5" value="'+(v.level===null?100:v.level)+'" data-stock-range="'+p.id+'" aria-label="Niveau restant de '+htmlSafe(p.name)+'">'+
     '<div class="stock-controls"><button type="button" class="stock-quick" data-stock-action="full" data-product-id="'+p.id+'">Plein · 100 %</button><button type="button" class="stock-quick" data-stock-action="empty" data-product-id="'+p.id+'">Terminé · 0 %</button></div>'+
     '<div class="stock-reserve"><span class="stock-reserve-label">Flacons de réserve</span><div class="stock-reserve-controls">'+
-    '<button type="button" data-stock-reserve="-1" data-product-id="'+p.id+'" aria-label="Retirer une réserve de '+p.name+'" '+(v.reserve<=0?'disabled':'')+'>−</button>'+
+    '<button type="button" data-stock-reserve="-1" data-product-id="'+p.id+'" aria-label="Retirer une réserve de '+htmlSafe(p.name)+'" '+(v.reserve<=0?'disabled':'')+'>−</button>'+
     '<span aria-label="'+v.reserve+' en réserve">'+v.reserve+'</span>'+
-    '<button type="button" data-stock-reserve="1" data-product-id="'+p.id+'" aria-label="Ajouter une réserve de '+p.name+'" '+(v.reserve>=99?'disabled':'')+'>+</button></div></div>'+
+    '<button type="button" data-stock-reserve="1" data-product-id="'+p.id+'" aria-label="Ajouter une réserve de '+htmlSafe(p.name)+'" '+(v.reserve>=99?'disabled':'')+'>+</button></div></div>'+
     '<div>'+productLink(p)+'</div></article>';
  }).join('');
 }
@@ -229,7 +231,7 @@ function renderRoutine(kind,tasks,date){let essential=tasks.filter(t=>!t.optiona
  if(am)html+=`<div class="shave-banner"><button class="shave-toggle ${state.shaveDays[calendarDate(date)]?'on':''}" id="shave-toggle">✂ ${state.shaveDays[calendarDate(date)]?'Rasage prévu : oui · enlever':'J’ai rasé / je rase mes contours aujourd’hui'}</button></div>`;
  el(am?'morning-routine':'evening-routine').innerHTML=html;}
 function renderToday(){const date=selectedDate,prog=essentialProgress(date),label=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}).format(date),isCurrent=isToday(date);el('date-line').textContent=(isCurrent?'AUJOURD’HUI · ':'')+label.toLocaleUpperCase('fr-FR');el('selected-day-label').textContent=isCurrent?'Les soins d’aujourd’hui':label;el('hero-title').textContent=prog.percent===100?'C’est fait. Bravo !':prog.completed===0?'Un geste à la fois.':'Tu es sur ta lancée.';el('hero-desc').textContent=`${prog.completed} sur ${prog.total} soins essentiels effectués`;el('progress-pct').textContent=`${prog.percent}%`;el('progress-disc').style.setProperty('--pct',`${prog.percent}%`);el('progress-disc').setAttribute('aria-label',`${prog.percent}% des soins essentiels effectués`);renderWeek();const steps=routines(date);renderRoutine('morning',steps.morning,date);renderRoutine('evening',steps.evening,date);}
-function renderProducts(){const groups=['Tous','Visage','Barbe','Cheveux','Corps'];el('category-filter').innerHTML=groups.map(g=>`<button class="filter-button ${category===g?'active':''}" data-category="${g}" aria-pressed="${category===g}">${g}</button>`).join('');el('product-list').innerHTML=products.filter(p=>category==='Tous'||p.group===category).map((p,i)=>`<article class="product-card"><div class="product-head"><span class="product-index">${String(products.indexOf(p)+1).padStart(2,'0')}</span><div><span class="category">${p.group} · ${p.amount}</span><h3>${p.name}</h3><p class="subtitle">${p.why}</p></div></div><p class="product-dose"><b>Application :</b> ${p.use}</p><p><b>Conseil :</b> ${p.tip}</p>${productLink(p)}</article>`).join('');}
+function renderProducts(){const groups=[...new Set(['Tous','Visage','Barbe','Cheveux','Corps',...products.map(p=>p.group)])];el('category-filter').innerHTML=groups.map(g=>`<button class="filter-button ${category===g?'active':''}" data-category="${htmlSafe(g)}" aria-pressed="${category===g}">${htmlSafe(g)}</button>`).join('');el('product-list').innerHTML=products.filter(p=>category==='Tous'||p.group===category).map((p,i)=>`<article class="product-card"><div class="product-head"><span class="product-index">${String(products.indexOf(p)+1).padStart(2,'0')}</span><div><span class="category">${htmlSafe(p.group)} · ${htmlSafe(p.amount)}</span><h3>${htmlSafe(p.name)}</h3><p class="subtitle">${htmlSafe(p.why)}</p></div></div><p class="product-dose"><b>Application :</b> ${htmlSafe(p.use)}</p><p><b>Conseil :</b> ${htmlSafe(p.tip)}</p>${productLink(p)}</article>`).join('');}
 function renderSettings(){renderPushSettings();document.querySelectorAll('[data-shower]').forEach(b=>{const active=b.dataset.shower===state.showerTime;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});el('owns-cleanser').checked=state.owns.cleanser;el('owns-spf').checked=state.owns.spf;el('morning-time').value=state.times.morning;el('evening-time').value=state.times.evening;}
 function render(){renderToday();renderProducts();renderStock();renderSettings();}
 function navigate(where){view=where;document.querySelectorAll('.view').forEach(s=>s.classList.toggle('is-visible',s.id===`${where}-view`));document.querySelectorAll('.nav-item').forEach(b=>{b.classList.toggle('active',b.dataset.view===where);b.setAttribute('aria-current',b.dataset.view===where?'page':'false');});window.scrollTo({top:0,behavior:'instant'});}
@@ -256,7 +258,7 @@ function bind(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventList
    const control=e.target.closest('[data-stock-action],[data-stock-reserve]');
    if(!control)return;
    const id=control.dataset.productId;
-   if(!productLinks[id])return;
+   if(!products.some(p=>p.id===id))return;
    if(control.dataset.stockAction==='full')setStock(id,{level:100});
    if(control.dataset.stockAction==='empty')setStock(id,{level:0});
    if(control.dataset.stockReserve){
@@ -280,7 +282,7 @@ function bind(){document.querySelectorAll('.nav-item').forEach(b=>b.addEventList
   state.pushPrefs[e.target.dataset.pushOption]=e.target.checked;save();renderPushSettings();syncPushPreferences();
  }));
  el('export-ics').addEventListener('click',exportICS);el('export-backup').addEventListener('click',()=>{downloadFile(`rituel-sauvegarde-${calendarDate(localToday())}.json`,JSON.stringify({format:'rituel-v1',exportedAt:new Date().toISOString(),data:state},null,2),'application/json');toast('Sauvegarde locale téléchargée.');});el('import-backup').addEventListener('click',()=>el('backup-file').click());
- el('backup-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const raw=JSON.parse(await file.text());if(raw.format!=='rituel-v1'||!raw.data||typeof raw.data!=='object'||!raw.data.checks||typeof raw.data.checks!=='object')throw Error('Format non reconnu');if(!confirm('Restaurer cette sauvegarde ? Ton suivi actuel sera remplacé.'))return;localStorage.setItem(STORAGE_KEY,JSON.stringify(raw.data));state=load();selectedDate=localToday();render();syncPushState();syncPushPreferences();toast('Sauvegarde restaurée.');}catch(err){toast('Fichier de sauvegarde invalide.');}finally{e.target.value='';}});
+ el('backup-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const raw=JSON.parse(await file.text());if(raw.format!=='rituel-v1'||!raw.data||typeof raw.data!=='object'||!raw.data.checks||typeof raw.data.checks!=='object')throw Error('Format non reconnu');if(!confirm('Restaurer cette sauvegarde ? Ton suivi actuel sera remplacé.'))return;localStorage.setItem(STORAGE_KEY,JSON.stringify(raw.data));state=load();selectedDate=localToday();window.RITUEL_TROUSSE?.hydrate();render();syncPushState();syncPushPreferences();toast('Sauvegarde restaurée.');}catch(err){toast('Fichier de sauvegarde invalide.');}finally{e.target.value='';}});
  el('reset-data').addEventListener('click',()=>{if(confirm('Effacer toutes les cases cochées et les jours de rasage ? Tes réglages resteront en place.')){state.checks={};state.shaveDays={};save();renderToday();syncPushState();toast('Suivi réinitialisé.');}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isToday(selectedDate)){selectedDate=localToday();renderToday();syncPushState();}});
 }
