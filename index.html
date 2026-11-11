@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f4f0">
-  <meta name="description" content="Rituel — ta routine de soins personnelle, matin et soir.">
+  <meta name="description" content="RITUEL — routines, collection de soins, parfums et trousses de voyage.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Rituel">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=1.6.1">
-  <title>Rituel — Ma routine</title>
+  <link rel="stylesheet" href="styles.css?v=1.7.0">
+  <title>RITUEL — Routines & Trousse</title>
 </head>
 <body>
   <div class="app-shell">
@@ -36,10 +36,19 @@
         <aside class="note-card"><span class="note-icon">✦</span><div><b>Un conseil pour ta peau mixte</b><p>Sur le front et le nez, garde la main légère avec la crème. Sous la barbe, privilégie le gel hydratant et réserve l’huile aux longueurs.</p></div></aside>
       </section>
 
-      <section class="view" id="products-view" aria-label="Mes neuf produits">
-        <div class="intro"><div class="eyebrow">TA COLLECTION</div><h1>Les essentiels <em>du rituel.</em></h1><p>9 produits, avec leur rôle et leur mode d’emploi.</p></div>
-        <div class="category-filter" id="category-filter" aria-label="Filtrer les produits"></div>
-        <div class="product-list" id="product-list"></div>
+      <section class="view" id="products-view" aria-label="Ma trousse de toilette">
+        <div class="intro"><div class="eyebrow">TA TROUSSE</div><h1>Tout ton <em>univers.</em></h1><p>Soins, parfums et essentiels, même en dehors de tes routines.</p></div>
+        <div class="trousse-tabs" role="tablist" aria-label="Espaces de la trousse">
+          <button type="button" data-trousse-tab="catalog" role="tab" aria-selected="true" class="active">Collection</button>
+          <button type="button" data-trousse-tab="kits" role="tab" aria-selected="false">Mes trousses</button>
+        </div>
+        <div id="trousse-catalog">
+          <div class="trousse-section-head"><p>Retrouve chaque produit, son utilisation, son stock et ses photos.</p><button type="button" class="trousse-add" id="trousse-add-product">+ Ajouter un produit</button></div>
+          <label class="trousse-search"><span class="sr-only">Rechercher dans la collection</span><input id="trousse-search" type="search" placeholder="Rechercher un produit…" autocomplete="off"></label>
+          <div class="category-filter" id="category-filter" aria-label="Filtrer les produits"></div>
+          <div class="product-list" id="product-list"></div>
+        </div>
+        <div id="trousse-kits" hidden></div>
       </section>
 
       <section class="view" id="stock-view" aria-label="Stock des produits">
@@ -108,13 +117,42 @@
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Produits"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Produits</span></button><button class="nav-item" data-view="stock" aria-label="Stock"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3M12 12v4"/></svg></span><span>Stock</span></button><button class="nav-item" data-view="stats" aria-label="Statistiques"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V12M10 20V5M16 20v-9M22 20V8"/><path d="M2 21h22"/></svg></span><span>Stats</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
+    <dialog id="trousse-product-dialog" class="trousse-dialog" aria-labelledby="trousse-product-title">
+      <form id="trousse-product-form" class="trousse-form">
+        <div class="trousse-dialog-top"><h2 id="trousse-product-title">Nouveau produit</h2><button type="button" data-trousse-close="trousse-product-dialog" aria-label="Fermer">✕</button></div>
+        <label>Nom du produit <input name="name" required maxlength="180" placeholder="Ex. Silver Suede"></label>
+        <div class="trousse-fields-two"><label>Marque <input name="brand" maxlength="80" placeholder="Rituals"></label><label>Contenance / format <input name="amount" maxlength="45" placeholder="50 ml"></label></div>
+        <label>Catégorie <select name="group"><option>Parfums</option><option>Visage</option><option>Corps</option><option>Barbe</option><option>Cheveux</option><option>Hygiène</option><option>Accessoires</option><option>Voyage</option><option>Divers</option></select></label>
+        <label>Description <textarea name="why" rows="2" maxlength="350" placeholder="À quoi sert ce produit ?"></textarea></label>
+        <label>Conseils d'utilisation <textarea name="use" rows="2" maxlength="500" placeholder="Quand et comment l'utiliser ?"></textarea></label>
+        <label>Astuce personnelle <textarea name="tip" rows="2" maxlength="500" placeholder="Précautions, fréquence, préférences…"></textarea></label>
+        <label>Lien boutique HTTPS <input type="url" name="shopUrl" maxlength="500" placeholder="https://www.rituals.com/…"></label>
+        <label>Tags <input name="tags" maxlength="220" placeholder="soirée, week-end, favori"></label>
+        <label class="trousse-checkline"><input name="travel" type="checkbox" checked> Proposer dans mes trousses de voyage</label>
+        <label>Photo du produit <input id="trousse-product-photo" type="file" accept="image/*"></label>
+        <div class="trousse-preview-wrap"><img id="trousse-photo-preview" alt="Aperçu du produit" hidden><small id="trousse-photo-hint">Photo facultative · compression automatique.</small></div>
+        <div class="trousse-form-actions"><button type="button" class="trousse-delete" id="trousse-delete-product" hidden>Supprimer</button><button type="submit" class="trousse-submit">Enregistrer le produit</button></div>
+      </form>
+    </dialog>
+    <dialog id="trousse-kit-dialog" class="trousse-dialog" aria-labelledby="trousse-kit-title">
+      <form id="trousse-kit-form" class="trousse-form">
+        <div class="trousse-dialog-top"><h2 id="trousse-kit-title">Créer une trousse</h2><button type="button" data-trousse-close="trousse-kit-dialog" aria-label="Fermer">✕</button></div>
+        <label>Nom de la trousse <input name="name" required maxlength="90" placeholder="Ex. Week-end · 2 nuits"></label>
+        <p class="trousse-help">Choisis les produits de ta collection.</p>
+        <div id="trousse-kit-products" class="trousse-kit-products"></div>
+        <label>Autres indispensables (un par ligne)<textarea name="extras" rows="4" maxlength="4000" placeholder="Brosse à dents&#10;Dentifrice&#10;Peigne"></textarea></label>
+        <button type="submit" class="trousse-submit">Enregistrer la trousse</button>
+      </form>
+    </dialog>
+    <input id="trousse-direct-photo" type="file" accept="image/*" hidden>
+    <nav class="bottom-nav" aria-label="Navigation"><button class="nav-item active" data-view="today" aria-label="Aujourd'hui"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4M17 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg></span><span>Aujourd’hui</span></button><button class="nav-item" data-view="products" aria-label="Trousse"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v3H8zM8 6h8l2 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10zM6 13h12"/></svg></span><span>Trousse</span></button><button class="nav-item" data-view="stock" aria-label="Stock"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3M12 12v4"/></svg></span><span>Stock</span></button><button class="nav-item" data-view="stats" aria-label="Statistiques"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V12M10 20V5M16 20v-9M22 20V8"/><path d="M2 21h22"/></svg></span><span>Stats</span></button><button class="nav-item" data-view="settings" aria-label="Réglages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="10" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span><span>Réglages</span></button></nav>
     <div id="toast" role="status" aria-live="polite"></div>
   </div>
   <script src="push-config.js"></script>
-  <script src="app.js?v=1.6.1" defer></script>
-  <script src="features.js?v=1.6.1" defer></script>
-  <script src="link-core.js?v=1.6.1" defer></script>
-  <script src="rituel-nexus.js?v=1.6.1" defer></script>
+  <script src="app.js?v=1.7.0" defer></script>
+  <script src="features.js?v=1.7.0" defer></script>
+  <script src="link-core.js?v=1.7.0" defer></script>
+  <script src="rituel-nexus.js?v=1.7.0" defer></script>
+  <script src="trousse.js?v=1.7.0" defer></script>
 </body>
 </html>
