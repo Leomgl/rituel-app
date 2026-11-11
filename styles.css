@@ -135,3 +135,73 @@ button:disabled{cursor:not-allowed;opacity:.47}
 .rituel-purchase-entry{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:7px 0;font-size:12px}
 .rituel-purchase-entry button{font-size:11px;padding:7px;border-radius:8px;border:1px solid #ddd}
 @media(max-width:420px){.rituel-purchase-entry{align-items:flex-start;flex-direction:column}}
+
+
+/* RITUEL 1.7 · TROUSSE — same paper / ink / sand visual language as the original app. */
+#trousse-catalog[hidden],#trousse-kits[hidden],.trousse-preview-wrap img[hidden]{display:none!important}
+.trousse-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#ebe7df;padding:5px;border-radius:16px;margin:0 0 21px}
+.trousse-tabs button{border:0;background:transparent;color:#7d817b;font-size:13px;font-weight:750;padding:12px 8px;border-radius:12px}
+.trousse-tabs button.active{background:var(--paper);color:var(--ink);box-shadow:0 2px 8px #101a1210}
+.trousse-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}
+.trousse-section-head p{color:var(--muted);font-size:12px;line-height:1.45;margin:0;max-width:260px}
+.trousse-add{border:0;background:#232b27;color:#fff;border-radius:12px;font-size:11px;font-weight:760;padding:11px 12px;white-space:nowrap;flex-shrink:0}
+.trousse-search{display:block;margin-bottom:13px}
+.trousse-search input{width:100%;padding:13px 15px;background:#fffefa;border:1px solid var(--line);border-radius:13px;font-size:13px;color:var(--ink)}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.trousse-product-photo{width:68px;height:80px;object-fit:contain;border-radius:12px;background:#f4f1eb;border:1px solid #eee9df;flex:0 0 68px}
+.trousse-stock-photo{width:59px;height:63px;object-fit:contain;border-radius:11px;background:#f4f1eb;border:1px solid #eee9df;flex:0 0 59px}
+.trousse-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.trousse-card-actions button{background:#f5f0e8;border:1px solid #e7ded0;color:#866c4b;padding:9px 12px;border-radius:10px;font-size:11px;font-weight:700}
+.product-card[hidden]{display:none!important}
+.trousse-kit-list{display:grid;gap:9px;margin-bottom:16px}
+.trousse-kit-card{width:100%;display:flex;align-items:center;gap:13px;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px}
+.trousse-kit-card.selected{border-color:#b69b72;box-shadow:0 0 0 2px #c9b89c22}
+.trousse-kit-icon{flex:0 0 38px;width:38px;height:38px;background:#efe7db;display:grid;place-items:center;border-radius:11px;color:#9b7b52;font-size:24px}
+.trousse-kit-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.trousse-kit-main b{font-size:13px}.trousse-kit-main small{font-size:11px;color:var(--muted)}
+.trousse-kit-chevron{font-size:25px;color:#9d927f}
+.trousse-kit-detail{padding:19px 17px;background:var(--paper);border:1px solid #ece6db;border-radius:20px}
+.trousse-kit-detail .section-head{align-items:center;margin-bottom:16px}
+.trousse-kit-detail h2{font-size:21px;margin:6px 0 0}
+.trousse-kit-detail .section-head strong{font-size:13px;color:#947951}
+.trousse-progress{height:6px;background:#f0ece5;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.trousse-progress>span{display:block;height:100%;background:#7c8d71;transition:width .2s;border-radius:10px}
+.trousse-pack-row{display:flex;align-items:center;gap:11px;border-top:1px solid #efebe4;padding:12px 2px;cursor:pointer}
+.trousse-pack-row input{width:20px;height:20px;flex-shrink:0;accent-color:#788e71}
+.trousse-pack-row>img{width:42px;height:42px;object-fit:contain;border-radius:9px;background:#f4f0e8}
+.trousse-pack-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#f2ece3;color:#b09b7a}
+.trousse-pack-row>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.trousse-pack-row b{font-size:12px}
+.trousse-pack-row small{font-size:10px;color:#898e87}
+.trousse-kit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.trousse-kit-actions button{border:1px solid #dedbd3;border-radius:10px;background:#f8f6f0;padding:10px 12px;font-size:11px;font-weight:700;color:#4b534b}
+.trousse-kit-actions button:last-child{color:#a15d52}
+.trousse-nexus-note{color:#747d73;font-size:11px;margin:22px 3px 10px;line-height:1.6}
+.trousse-nexus-note b{color:#9c845e}
+.trousse-empty{padding:25px;border-radius:16px;background:var(--paper);color:var(--muted);font-size:12px;text-align:center}
+.trousse-dialog{border:0;border-radius:20px 20px 0 0;width:min(100%,560px);max-width:560px;max-height:90dvh;margin:auto auto 0;padding:0;background:#fffefa;color:var(--ink);box-shadow:0 -12px 50px #10191035}
+.trousse-dialog::backdrop{background:#1a241c7a;backdrop-filter:blur(3px)}
+.trousse-form{display:grid;gap:15px;padding:23px 22px calc(23px + env(safe-area-inset-bottom,0px));overflow-y:auto;max-height:90dvh}
+.trousse-dialog-top{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.trousse-dialog-top h2{font:normal 27px Georgia,serif;letter-spacing:-.5px;margin:0}
+.trousse-dialog-top button{border:0;background:#f2f0eb;border-radius:12px;width:35px;height:35px;flex:0 0 35px}
+.trousse-form label{display:grid;gap:7px;font-size:11px;font-weight:750;color:#767a73}
+.trousse-form input:not([type=checkbox]):not([type=file]),.trousse-form select,.trousse-form textarea{width:100%;font:inherit;font-size:13px;font-weight:500;background:#f8f7f3;color:#26302a;border:1px solid #e4e0d7;border-radius:11px;padding:12px;resize:vertical;min-width:0}
+.trousse-form input[type=file]{width:100%;font-size:11px;overflow:hidden}
+.trousse-form .trousse-fields-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+.trousse-form .trousse-checkline{display:flex;gap:9px;align-items:center;color:#313b32}
+.trousse-checkline input{accent-color:#7b8c71}
+.trousse-preview-wrap{display:flex;align-items:center;gap:10px;min-height:20px}
+.trousse-preview-wrap img{width:68px;height:80px;object-fit:contain;background:#f5f2ed;border-radius:10px}
+.trousse-preview-wrap small{font-size:10px;color:var(--muted);line-height:1.45}
+.trousse-form-actions{display:flex;align-items:center;gap:10px}
+.trousse-submit{display:block;flex:1;background:#27312a;border:0;border-radius:12px;color:white;padding:13px 12px;font-size:12px;font-weight:750}
+.trousse-delete{border:1px solid #e7c9c4;border-radius:12px;padding:12px;color:#a4554f;background:#fff8f7;font-size:11px;font-weight:740}
+.trousse-kit-products{max-height:235px;overflow-y:auto;display:grid;gap:3px;border:1px solid #ebe7e0;border-radius:13px;padding:6px 12px}
+.trousse-kit-products .trousse-kit-choice{display:flex;align-items:center;gap:10px;padding:10px 3px;border-bottom:1px solid #f0eee8;font-size:12px;color:var(--ink)}
+.trousse-kit-choice:last-child{border-bottom:0}
+.trousse-kit-choice input{accent-color:#7b8e72;width:18px;height:18px;flex-shrink:0}
+.trousse-kit-choice span{display:flex;flex-direction:column;gap:2px}
+.trousse-kit-choice small{font-size:10px;font-weight:500;color:var(--muted)}
+.trousse-help{font-size:11px;color:var(--muted);margin:0}
+@media(max-width:365px){.trousse-section-head{align-items:stretch;flex-direction:column}.trousse-add{align-self:flex-start}.trousse-form .trousse-fields-two{grid-template-columns:1fr}}
