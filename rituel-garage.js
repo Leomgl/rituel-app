@@ -9,7 +9,7 @@
  const online=()=>navigator.onLine&&!!window.NexusLinkCore;
  const source=()=>window.NexusLinkCore;
  const item=id=>products.find(p=>p.id===id);
- let pairs=null,busy=false,status='',syncTimer;
+ let pairs=null,busy=false,status='',syncTimer,lastConflictCount=0;
  try{pairs=JSON.parse(localStorage.getItem(KEY)||'null');}catch{}
  function display(s){status=s;render();}
  function decode(value){
@@ -28,7 +28,9 @@
   const panel=document.getElementById('trousse-garage-panel');if(!panel)return;
   const count=Object.keys(ensure().positions||{}).length;
   panel.innerHTML='<div class="trousse-travel-head"><span class="eyebrow">RITUEL × GARAGE</span><h3>Mes objets et leurs lieux</h3><p>Rituel garde tes stocks et routines. Garage conserve les emplacements et les ensembles. Les changements de lieu sont transmis de façon chiffrée quand les apps sont ouvertes.</p></div>'+
-   (pairs?'<div class="trousse-nexus-status">Connecté · '+count+' produit(s) localisés</div><div class="trousse-travel-actions"><button type="button" data-rgarage="sync">Synchroniser avec Garage</button><button type="button" data-rgarage="unlink">Dissocier</button></div>':
+   (pairs?'<div class="trousse-nexus-status">Connecté · '+count+' produit(s) localisés</div><div class="trousse-travel-actions"><button type="button" data-rgarage="sync">Synchroniser avec Garage</button>'+
+    (ensure().pending.length?'<button type="button" data-rgarage="cancel">Annuler mes changements en attente ('+ensure().pending.length+')</button>':'')+
+    '<button type="button" data-rgarage="unlink">Dissocier</button></div>':
     '<label class="trousse-garage-label">Code privé copié depuis Garage → Réglages<textarea id="rituel-garage-code" rows="4" placeholder="GRL1…"></textarea></label><button type="button" class="trousse-travel-connect" data-rgarage="join">Connecter mes produits à Garage</button>')+
    '<p class="trousse-nexus-note">Ni stock, ni historique de routines, ni photo personnelle ne sont envoyés. Une demande de déplacement peut être en attente si Garage est fermée.</p>'+
    (status?'<p class="trousse-nexus-note" role="status">'+safe(status)+'</p>':'');
@@ -71,8 +73,11 @@
  }
  async function unlink(){
   if(!pairs||!confirm('Dissocier Rituel et Garage ? Les données des deux apps sont conservées.'))return;
-  try{await Promise.allSettled([source().revoke(pairs.toGarage),source().revoke(pairs.toRituel)]);}
-  finally{pairs=null;localStorage.removeItem(KEY);display('Connexion révoquée. Aucun produit supprimé.');}
+  try{
+   const results=await Promise.allSettled([source().revoke(pairs.toGarage),source().revoke(pairs.toRituel)]);
+   if(results.some(x=>x.status==='rejected'))throw Error('La révocation serveur a échoué');
+   pairs=null;localStorage.removeItem(KEY);display('Connexion révoquée. Aucun produit supprimé.');
+  }catch(e){display('Révocation incomplète : '+clean(e.message,85));}
  }
  const fingerprint=async data=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(data))))].map(x=>x.toString(16).padStart(2,'0')).join('');
  function catalogPages(){
@@ -118,14 +123,17 @@
   const latest=Math.max(...future.map(x=>x.payload.revision));
   const pages=future.filter(x=>x.payload.revision===latest).sort((a,b)=>a.payload.part-b.payload.part);
   if(!pages.length||pages.length!==pages[0].payload.total||new Set(pages.map(x=>x.payload.part)).size!==pages.length)return 0;
-  const places=pages.flatMap(x=>x.payload.places),positions=pages.flatMap(x=>x.payload.positions);
+  const places=pages.flatMap(x=>x.payload.places),positions=pages.flatMap(x=>x.payload.positions),
+   conflicts=pages.flatMap(x=>Array.isArray(x.payload.conflicts)?x.payload.conflicts:[]);
+  lastConflictCount=conflicts.length;
   if(places.some(x=>!x||typeof x.id!=='string'||typeof x.name!=='string'||(x.parentId!==null&&typeof x.parentId!=='string'))||
      positions.some(x=>!x||typeof x.productId!=='string'||typeof x.placeId!=='string'||!Number.isSafeInteger(x.revision)))return 0;
   const previous=ensure();
   const next={places,positions:Object.fromEntries(positions.map(x=>[x.productId,{placeId:x.placeId,revision:x.revision}])),revision:latest,
    pending:previous.pending.filter(req=>{
     const p=positions.find(x=>x.productId===req.productId);
-    return !p||p.revision<=req.expectedRevision;
+    const rejected=conflicts.some(x=>x.productId===req.productId&&x.requestRevision===req.revision);
+    return !rejected&&(!p||p.revision<=req.expectedRevision);
    })};
   state.trousse.garage=next;save();
   for(const msg of pages)await source().acknowledge(pairs.toRituel,msg.id);
@@ -138,7 +146,8 @@
   if(!online())return display('Synchronisation reportée : hors connexion.');
   busy=true;try{
    const outgoing=await sendCatalog(),requests=await flushLocationRequests(),incoming=await receiveLocations();
-   display('Échanges : '+outgoing+' lot(s) produits, '+requests+' changement(s), '+incoming+' lot(s) d’emplacements reçus.');
+   display('Échanges : '+outgoing+' lot(s) produits, '+requests+' changement(s), '+incoming+' lot(s) d’emplacements reçus.'+
+    (lastConflictCount?' Attention : '+lastConflictCount+' déplacement(s) refusé(s), recharge le lieu avant de réessayer.':''));
   }catch(e){display('Synchronisation incomplète : '+clean(e.message,92));}
   finally{busy=false;}
  }
@@ -153,8 +162,10 @@
   ensure().pending.push({productId:id,placeId,expectedRevision:current.revision,revision,sent:false});save();
   renderProducts();scheduleSync();toast('Déplacement demandé à Garage. Il sera validé à sa prochaine ouverture.');
  }
+ function cancel(){if(!confirm('Annuler uniquement les demandes de lieu en attente sur cet iPhone ?'))return;
+  ensure().pending=[];save();renderProducts();display('Demandes locales annulées. Réceptionne Garage pour rétablir les lieux.');}
  document.addEventListener('click',e=>{const btn=e.target.closest('[data-rgarage]');if(!btn)return;e.preventDefault();
-  const actions={join,unlink,sync};actions[btn.dataset.rgarage]?.().catch(err=>display(clean(err.message,90)));
+  const actions={join,unlink,sync,cancel};actions[btn.dataset.rgarage]?.().catch(err=>display(clean(err.message,90)));
  });
  document.addEventListener('change',e=>{
   const x=e.target.closest('[data-rgarage-product]');if(!x)return;
