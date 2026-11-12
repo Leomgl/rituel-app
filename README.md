@@ -1,6 +1,12 @@
-# RITUEL — soins, collection et trousses, version 1.7
+# RITUEL — soins, collection et trousses, version 1.9
 
 Une application web iPhone installable (PWA) pour les routines matin/soir, le stock de soins, les parfums et les trousses de voyage. **Projet sans App Store ni frais récurrents**, avec fonctions hors ligne et données de suivi conservées sur l’appareil. Les notifications Web Push passent par Cloudflare Workers.
+
+## Nouveautés V1.9 — RITUEL × GARAGE (Forge #24)
+- Connexion optionnelle chiffrée avec **Garage** dans Trousse → Mes trousses → Mes objets et leurs lieux. Depuis Garage → Réglages, créer un lien et copier le code privé **GRL1** dans Rituel. Le produit garde son identifiant stable ; Garage gère ses lieux et ensembles, Rituel garde son stock, ses achats, ses routines et ses photos.
+- Catalogue minimal Rituel → Garage (ID, nom, marque, catégorie, format) ; emplacements Garage → Rituel. Les déplacements demandés depuis Rituel restent en attente jusqu'à leur validation par Garage, avec révisions et signalement des conflits.
+- Aucun stock ni photo transféré ; anciens modèles de trousses, historique, achats, jumelage Nexus existant et notifications push inchangés.
+- Code V1.9.0 : `rituel-garage.js`, `trousse.js`, `link-core.js`, PWA cache `rituel-v1.9.0`, allowlist Worker `rituel-web`. PR #1 fusionnée (`5172c36d3f63434ceaae09637e12361f1172b745`), Cloudflare `rituel-web` version `da933ca4-ad98-4461-8e1f-b53e5b079d31` déployée à 100 %, GitHub Pages/CI réussies. Recette iPhone physique et test réel de synchronisation encore nécessaires.
 
 ## Notre architecture réutilisable pour les prochaines apps
 
