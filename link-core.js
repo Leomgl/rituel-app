@@ -31,12 +31,12 @@
  }
  function validatePair(pair){
   if(!pair||typeof pair.id!=='string'||!/^[-0-9a-f]{36}$/i.test(pair.id)||typeof pair.seed!=='string'||fromB64(pair.seed).length!==32||
-   !['gaming','rituel'].includes(pair.sourceApp)||!Array.isArray(pair.scopes)||pair.scopes.length===0)
+   !['gaming','rituel','garage'].includes(pair.sourceApp)||!Array.isArray(pair.scopes)||pair.scopes.length===0)
    throw Error('INVALID_PAIRING');
   return pair;
  }
  async function createPair(sourceApp,scopes){
-  if(!['gaming','rituel'].includes(sourceApp)||!Array.isArray(scopes)||!scopes.length)throw Error('INVALID_SCOPES');
+  if(!['gaming','rituel','garage'].includes(sourceApp)||!Array.isArray(scopes)||!scopes.length)throw Error('INVALID_SCOPES');
   const pair={id:crypto.randomUUID(),seed:b64(crypto.getRandomValues(new Uint8Array(32))),sourceApp,scopes:[...new Set(scopes)],createdAt:new Date().toISOString()};
   const writer=await token(pair,'write'),reader=await token(pair,'read');
   await jsonRequest('/api/v1/link/pair',{method:'POST',body:{

@@ -88,6 +88,7 @@
    const visible=!search||[p.name,p.brand,p.group,p.tags].join(' ').toLocaleLowerCase('fr').includes(search);
    card.hidden=!visible;
   });
+  window.RituelGarage?.decorate?.(current);
  }
  function decorateStock(){
   q('stock-list')?.querySelectorAll('.stock-card').forEach((card,index)=>{
@@ -230,9 +231,11 @@
   area.innerHTML='<div class="trousse-section-head"><p>Prépare tes essentiels, coche ce qui est dans le sac et réutilise tes modèles.</p><button type="button" class="trousse-add" id="trousse-add-kit">+ Créer une trousse</button></div>'+
    '<div class="trousse-kit-list">'+(list||'<div class="trousse-empty">Aucune trousse pour le moment.</div>')+'</div>'+detail+
    '<p class="trousse-nexus-note"><b>NEXUS × RITUEL</b> · Les trousses restent disponibles hors ligne.</p>'+
-   '<section id="trousse-nexus-panel" class="trousse-nexus-panel" aria-label="Voyages reçus de Nexus"></section>';
+   '<section id="trousse-nexus-panel" class="trousse-nexus-panel" aria-label="Voyages reçus de Nexus"></section>'+
+   '<section id="trousse-garage-panel" class="trousse-nexus-panel" aria-label="Produits Rituel connectés à Garage"></section>';
   area.querySelectorAll('.trousse-pack-row img').forEach(imageError);
   window.RituelTravel?.render?.();
+  window.RituelGarage?.render?.();
  }
  function openKit(id=null){
   editingKit=id;
