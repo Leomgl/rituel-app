@@ -1,6 +1,12 @@
-# RITUEL — soins, collection et trousses, version 1.9
+# RITUEL — soins, collection et trousses, version 1.10
 
 Une application web iPhone installable (PWA) pour les routines matin/soir, le stock de soins, les parfums et les trousses de voyage. **Projet sans App Store ni frais récurrents**, avec fonctions hors ligne et données de suivi conservées sur l’appareil. Les notifications Web Push passent par Cloudflare Workers.
+
+## Nouveautés V1.10 — Soins Sport et Ayurveda (12 novembre 2026)
+- **Deux nouveaux soins par défaut** dans Collection et Stock, avec fiches conseils et liens Rituals vérifiés : Sport Anti-Dryness Body Lotion 70 ml (corps) et The Ritual of Ayurveda Recovery Hand Balm 70 ml (mains). Photos officielles via les références 1116311 / 1119084, photo locale toujours prioritaire.
+- **Routine après douche** : une seule étape d'hydratation « Sport ou Sakura », à choisir selon le besoin ; pas de double application. L'identifiant de coche historique `sakura` est conservé pour ne pas perdre le suivi. Routine du soir : baume mains Ayurveda facultatif.
+- **Stock** : nouveaux niveaux « À renseigner » et aucune réserve supposée. Conservation des stocks existants, historiques, trousses, photos, connexions, notifications et de la clé `rituel_personal_v1`. Aucun débit automatique.
+- **PWA** : cache `rituel-v1.10.0` et ressources `?v=1.10.0`; le Worker `rituel-web` sert les fichiers de GitHub Pages sans modification de ses contrats.
 
 ## Nouveautés V1.9 — RITUEL × GARAGE (Forge #24)
 - Connexion optionnelle chiffrée avec **Garage** dans Trousse → Mes trousses → Mes objets et leurs lieux. Depuis Garage → Réglages, créer un lien et copier le code privé **GRL1** dans Rituel. Le produit garde son identifiant stable ; Garage gère ses lieux et ensembles, Rituel garde son stock, ses achats, ses routines et ses photos.
