@@ -11,14 +11,14 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=1.9.0">
+  <link rel="stylesheet" href="styles.css?v=1.10.0">
   <title>RITUEL — Routines & Trousse</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand" aria-label="Rituel, ta routine de soins"><span class="brand-mark">R<span class="mark-dot">.</span></span><span class="brand-word">RITUEL<span class="brand-sub">SOINS QUOTIDIENS</span></span></div>
-      <button class="icon-button" id="settings-shortcut" aria-label="Ouvrir les réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.07.07-1.9 1.9-.07-.07A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1.1 1.57V20h-2.8v-.03A1.7 1.7 0 0 0 11 18.4a1.7 1.7 0 0 0-1.88.34l-.07.07-1.9-1.9.07-.07A1.7 1.7 0 0 0 7.6 15a1.7 1.7 0 0 0-1.57-1.1H6v-2.8h.03A1.7 1.7 0 0 0 7.6 10a1.7 1.7 0 0 0-.34-1.88l-.07-.07 1.9-1.9.07.07A1.7 1.7 0 0 0 11 6.6a1.7 1.7 0 0 0 1.1-1.57V5h2.8v.03A1.7 1.7 0 0 0 16 6.6a1.7 1.7 0 0 0 1.88-.34l.07-.07 1.9 1.9-.07.07A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.57 1.1H21v2.8h-.03A1.7 1.7 0 0 0 19.4 15Z" transform="translate(-1,-1)"/></svg></button>
+      <button class="icon-button" id="settings-shortcut" aria-label="Ouvrir les réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.07.07-1.9 1.9-.07-.07A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1.1 1.57V20h-2.8v-.03A1.7 1.7 0 0 0 11 18.4a1.7 1.7 0 0 0-1.88.34l-.07.07-1.9-1.10.07-.07A1.7 1.7 0 0 0 7.6 15a1.7 1.7 0 0 0-1.57-1.1H6v-2.8h.03A1.7 1.7 0 0 0 7.6 10a1.7 1.7 0 0 0-.34-1.88l-.07-.07 1.9-1.10.07.07A1.7 1.7 0 0 0 11 6.6a1.7 1.7 0 0 0 1.1-1.57V5h2.8v.03A1.7 1.7 0 0 0 16 6.6a1.7 1.7 0 0 0 1.88-.34l.07-.07 1.9 1.9-.07.07A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.57 1.1H21v2.8h-.03A1.7 1.7 0 0 0 19.4 15Z" transform="translate(-1,-1)"/></svg></button>
     </header>
 
     <main>
@@ -122,7 +122,7 @@
         <div class="trousse-dialog-top"><h2 id="trousse-product-title">Nouveau produit</h2><button type="button" data-trousse-close="trousse-product-dialog" aria-label="Fermer">✕</button></div>
         <label>Nom du produit <input name="name" required maxlength="180" placeholder="Ex. Silver Suede"></label>
         <div class="trousse-fields-two"><label>Marque <input name="brand" maxlength="80" placeholder="Rituals"></label><label>Contenance / format <input name="amount" maxlength="45" placeholder="50 ml"></label></div>
-        <label>Catégorie <select name="group"><option>Parfums</option><option>Visage</option><option>Corps</option><option>Barbe</option><option>Cheveux</option><option>Hygiène</option><option>Accessoires</option><option>Voyage</option><option>Divers</option></select></label>
+        <label>Catégorie <select name="group"><option>Parfums</option><option>Visage</option><option>Corps</option><option>Mains</option><option>Barbe</option><option>Cheveux</option><option>Hygiène</option><option>Accessoires</option><option>Voyage</option><option>Divers</option></select></label>
         <label>Description <textarea name="why" rows="2" maxlength="350" placeholder="À quoi sert ce produit ?"></textarea></label>
         <label>Conseils d'utilisation <textarea name="use" rows="2" maxlength="500" placeholder="Quand et comment l'utiliser ?"></textarea></label>
         <label>Astuce personnelle <textarea name="tip" rows="2" maxlength="500" placeholder="Précautions, fréquence, préférences…"></textarea></label>
@@ -150,12 +150,12 @@
     <div id="toast" role="status" aria-live="polite"></div>
   </div>
   <script src="push-config.js"></script>
-  <script src="app.js?v=1.9.0" defer></script>
-  <script src="features.js?v=1.9.0" defer></script>
-  <script src="link-core.js?v=1.9.0" defer></script>
-  <script src="rituel-nexus.js?v=1.9.0" defer></script>
-  <script src="trousse.js?v=1.9.0" defer></script>
-  <script src="rituel-travel.js?v=1.9.0" defer></script>
-  <script src="rituel-garage.js?v=1.9.0" defer></script>
+  <script src="app.js?v=1.10.0" defer></script>
+  <script src="features.js?v=1.10.0" defer></script>
+  <script src="link-core.js?v=1.10.0" defer></script>
+  <script src="rituel-nexus.js?v=1.10.0" defer></script>
+  <script src="trousse.js?v=1.10.0" defer></script>
+  <script src="rituel-travel.js?v=1.10.0" defer></script>
+  <script src="rituel-garage.js?v=1.10.0" defer></script>
 </body>
 </html>

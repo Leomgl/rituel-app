@@ -27,7 +27,7 @@
  let selectedKit='trousse-kit-weekend',mode='catalog',search='',photoFor=null,pendingPhoto=null,editingId=null,editingKit=null;
  const q=id=>document.getElementById(id);
  const hasPhoto=src=>typeof src==='string'&&src.length<550000&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
- const officialSkus={anti:'1120537',face:'1120289',shampoo:'1122488',serum:'1120271',aftershave:'1120290',sakura:'1118773',foam:'1119070',oil:'1120294',hydrator:'1116297','trousse-silver-suede':'1120736'};
+ const officialSkus={anti:'1120537',face:'1120289',shampoo:'1122488',serum:'1120271',aftershave:'1120290',sakura:'1118773',foam:'1119070',oil:'1120294',hydrator:'1116297','sport-body':'1116311','ayurveda-hands':'1119084','trousse-silver-suede':'1120736'};
  const officialImage=(p)=>{
   const sku=/^\d{7,10}$/.test(p?.ritualsSku||'')?p.ritualsSku:officialSkus[p?.id];
   if(!sku)return null;

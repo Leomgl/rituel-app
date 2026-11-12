@@ -14,4 +14,4 @@ jobs:
       - name: Syntax and contract
         run: |
           for file in app.js features.js link-core.js rituel-nexus.js trousse.js rituel-travel.js rituel-garage.js sw.js; do node --check "$file"; done
-          node --test tests/garage-link.test.cjs
+          node --test tests/*.test.cjs
