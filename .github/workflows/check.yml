@@ -1,0 +1,17 @@
+name: RITUEL JavaScript checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and contract
+        run: |
+          for file in app.js features.js link-core.js rituel-nexus.js trousse.js rituel-travel.js rituel-garage.js sw.js; do node --check "$file"; done
+          node --test tests/garage-link.test.cjs
