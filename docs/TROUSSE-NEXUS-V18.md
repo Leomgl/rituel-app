@@ -41,3 +41,9 @@ Le transfert exige une connexion internet au moment de l'envoi/réception. Les m
 - Vérifier la disponibilité réelle des packshots : les URL sont dérivées des références officielles et ne sont pas garanties par Rituals.
 
 État : code et Workers publiés ; validation réelle iPhone de bout en bout encore nécessaire.
+
+## Addendum V1.9 — Garage chiffré (12/11/2026)
+- La réception Nexus → Rituel des séjours V1.8 demeure opérationnelle et indépendante ; l'intégration Garage n'en remplace aucune trousse.
+- `rituel-garage.js` exporte uniquement les métadonnées des produits, reçoit les lieux publiés par Garage, et soumet des demandes de déplacement par révision. L'utilisateur peut annuler les demandes en attente, les conflits sont signalés. Les niveaux de stock, photos et routines ne circulent pas.
+- Paires `GRL1` séparées du canal existant `trip_context` de Nexus ; `sourceApp=garage` côté relais NEXUS LINK. API/relai Cloudflare déployés avec bindings préservés et migration D1 `0003_garage.sql` vérifiée (4/51 avant-après, FK 0).
+- Livraison GitHub `5172c36d3f63434ceaae09637e12361f1172b745`, Worker `rituel-web` version `da933ca4-ad98-4461-8e1f-b53e5b079d31` à 100 %, tests CI verts, vraie recette Safari iPhone E2E non vérifiée.
