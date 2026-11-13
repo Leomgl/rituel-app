@@ -26,6 +26,7 @@
    const action=e.target.closest('[data-r-link]')?.dataset.rLink;
    if(action==='join')join();
    if(action==='enroll-hub')enrollHub().catch(err=>toast('LINK : '+err.message.slice(0,95)));
+   if(action==='send-hub')sendHub().catch(err=>toast('LINK : '+String(err.message||err).slice(0,100)));
    if(action==='send')send().catch(err=>toast('Envoi impossible : '+err.message.slice(0,90)));
    if(action==='refresh')refresh();
    if(action==='test')test().catch(err=>toast('Test impossible : '+err.message.slice(0,90)));
@@ -60,7 +61,13 @@
    '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p>'+
    '<div class="field"><label for="rituel-hub-code">Accès au centre LINK (invitation Rituel uniquement)</label>'+
    '<textarea id="rituel-hub-code" rows="2" autocomplete="off" spellcheck="false" placeholder="LHI1.rituel.…"></textarea></div>'+
-   '<button type="button" class="secondary-button" data-r-link="enroll-hub">Inscrire Rituel dans LINK</button>';
+   '<button type="button" class="secondary-button" data-r-link="enroll-hub">Inscrire Rituel dans LINK</button>'+
+   '<div class="field"><label for="rituel-hub-scope">Type de données à envoyer à LINK</label>'+
+   '<select id="rituel-hub-scope"><option value="routine_summary">Résumé des routines</option>'+
+   '<option value="restock_task">Rappel de stock</option><option value="restock_purchase">Suggestion d’achat</option>'+
+   '<option value="routine_schedule">Événement de routine</option><option value="product_paid">Achat réellement confirmé</option></select></div>'+
+   '<button type="button" class="secondary-button" data-r-link="send-hub">Envoyer via LINK (chiffré)</button>'+
+   '<p class="push-fine">Aucune donnée ne part sans autorisation de cette portée dans LINK. Nexus examine chaque proposition avant de l’ajouter.</p>';
  }
  async function enrollHub(){
   const code=document.getElementById('rituel-hub-code')?.value||'';
@@ -68,6 +75,34 @@
   await window.LinkHubOnboard.enroll(code);
   toast('Rituel inscrit dans LINK. Les anciennes connexions restent en place.');
   refresh();
+ }
+ async function sendHub(){
+  if(!enabled()||!link.pair)throw Error("Ancien jumelage chiffré nécessaire pour conserver les identifiants.");
+  if(!window.LinkHubBus)throw Error("MODULE_TRANSPORT_LINK_INDISPONIBLE");
+  const scope=document.getElementById("rituel-hub-scope")?.value||"routine_summary";
+  if(!link.pair.scopes.includes(scope))throw Error("Cette portée n’est pas autorisée par le jumelage existant.");
+  const entries=additions().filter(item=>item.scope===scope).slice(0,12);
+  if(!entries.length){toast("Aucune donnée de cette catégorie à transmettre.");return}
+  const journalKey="rituel_hub_revision_v1";
+  let history={};try{history=JSON.parse(localStorage.getItem(journalKey)||"{}")||{}}catch{}
+  const digest=async payload=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",
+   new TextEncoder().encode(JSON.stringify(payload))))].map(b=>b.toString(16).padStart(2,"0")).join("");
+  let sent=0,unchanged=0;
+  for(const item of entries){
+   const fingerprint=await digest(item.payload);
+   const previous=history[item.id],legacy=link.outbox?.find(row=>row.id===item.id);
+   if(previous?.fingerprint===fingerprint){unchanged++;continue}
+   const base=legacy?(legacy.fingerprint===fingerprint?legacy.revision:legacy.revision+1):1;
+   const revision=previous?Math.max(base,previous.revision+1):base;
+   const result=await window.LinkHubBus.publish({pair:link.pair,from:"rituel",to:"nexus",
+    contractId:"rituel-nexus",scope:item.scope,entityId:item.id,revision,
+    payload:item.payload,schemaVersion:"rituel.proposal.v1"});
+   if(result.accepted){
+    history[item.id]={revision,fingerprint};
+    localStorage.setItem(journalKey,JSON.stringify(history));sent++;
+   }
+  }
+  toast(sent+" proposition(s) chiffrée(s) transmises à LINK, "+unchanged+" inchangée(s).");
  }
  async function join(){
   const raw=document.getElementById('rituel-link-code')?.value;
