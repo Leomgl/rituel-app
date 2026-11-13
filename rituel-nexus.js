@@ -76,33 +76,42 @@
   toast('Rituel inscrit dans LINK. Les anciennes connexions restent en place.');
   refresh();
  }
- async function sendHub(){
+ async function sendHub({scopes=null,quiet=false}={}){
   if(!enabled()||!link.pair)throw Error("Ancien jumelage chiffré nécessaire pour conserver les identifiants.");
   if(!window.LinkHubBus)throw Error("MODULE_TRANSPORT_LINK_INDISPONIBLE");
-  const scope=document.getElementById("rituel-hub-scope")?.value||"routine_summary";
-  if(!link.pair.scopes.includes(scope))throw Error("Cette portée n’est pas autorisée par le jumelage existant.");
-  const entries=additions().filter(item=>item.scope===scope).slice(0,12);
-  if(!entries.length){toast("Aucune donnée de cette catégorie à transmettre.");return}
+  if(busy)return {busy:true,sent:0,unchanged:0};
+  const allowed=link.pair.scopes.filter(x=>["routine_summary","restock_task","restock_purchase","routine_schedule","product_paid"].includes(x));
+  const selected=scopes==null?[document.getElementById("rituel-hub-scope")?.value||"routine_summary"]:
+   [...new Set(scopes.filter(x=>allowed.includes(x)))];
+  if(!selected.length)return {sent:0,unchanged:0};
+  if(selected.some(scope=>!allowed.includes(scope)))throw Error("Cette portée n’est pas autorisée par le jumelage existant.");
+  const entries=additions().filter(item=>selected.includes(item.scope)).slice(0,30);
+  if(!entries.length){if(!quiet)toast("Aucune donnée de cette catégorie à transmettre.");return {sent:0,unchanged:0}}
   const journalKey="rituel_hub_revision_v1";
   let history={};try{history=JSON.parse(localStorage.getItem(journalKey)||"{}")||{}}catch{}
   const digest=async payload=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",
    new TextEncoder().encode(JSON.stringify(payload))))].map(b=>b.toString(16).padStart(2,"0")).join("");
-  let sent=0,unchanged=0;
-  for(const item of entries){
-   const fingerprint=await digest(item.payload);
-   const previous=history[item.id],legacy=link.outbox?.find(row=>row.id===item.id);
-   if(previous?.fingerprint===fingerprint){unchanged++;continue}
-   const base=legacy?(legacy.fingerprint===fingerprint?legacy.revision:legacy.revision+1):1;
-   const revision=previous?Math.max(base,previous.revision+1):base;
-   const result=await window.LinkHubBus.publish({pair:link.pair,from:"rituel",to:"nexus",
-    contractId:"rituel-nexus",scope:item.scope,entityId:item.id,revision,
-    payload:item.payload,schemaVersion:"rituel.proposal.v1"});
-   if(result.accepted){
-    history[item.id]={revision,fingerprint};
-    localStorage.setItem(journalKey,JSON.stringify(history));sent++;
+  busy=true;let sent=0,unchanged=0,failed=0;
+  try{
+   for(const item of entries){
+    const fingerprint=await digest(item.payload);
+    const previous=history[item.id],legacy=link.outbox?.find(row=>row.id===item.id);
+    if(previous?.fingerprint===fingerprint){unchanged++;continue}
+    const base=legacy?(legacy.fingerprint===fingerprint?legacy.revision:legacy.revision+1):1;
+    const revision=previous?Math.max(base,previous.revision+1):base;
+    try{
+     const result=await window.LinkHubBus.publish({pair:link.pair,from:"rituel",to:"nexus",
+      contractId:"rituel-nexus",scope:item.scope,entityId:item.id,revision,
+      payload:item.payload,schemaVersion:"rituel.proposal.v1"});
+     if(result.accepted){
+      history[item.id]={revision,fingerprint};
+      localStorage.setItem(journalKey,JSON.stringify(history));sent++;
+     }
+    }catch(error){failed++;console.warn("RITUEL LINK Hub publish",error?.message||error)}
    }
-  }
-  toast(sent+" proposition(s) chiffrée(s) transmises à LINK, "+unchanged+" inchangée(s).");
+   if(!quiet)toast(sent+" proposition(s) chiffrée(s) transmises à LINK, "+unchanged+" inchangée(s)"+(failed?", "+failed+" échec(s)":"")+".");
+   return {sent,unchanged,failed};
+  }finally{busy=false}
  }
  async function join(){
   const raw=document.getElementById('rituel-link-code')?.value;
@@ -204,7 +213,14 @@
  function queue(){
   if(!enabled()||!auto())return;
   clearTimeout(timer);
-  timer=setTimeout(()=>send().catch(e=>console.warn('RITUEL LINK attend la connexion',e.message)),5000);
+  timer=setTimeout(async()=>{
+   timer=null;
+   try{await sendHub({scopes:link.pair.scopes,quiet:true})}
+   catch(error){
+    console.warn("RITUEL LINK Hub différé",error?.message||error);
+    try{await send()}catch(e){console.warn("RITUEL LINK ancien relais différé",e?.message||e)}
+   }
+  },1200);
  }
  async function test(){
   if(!enabled())throw Error('Jumelage requis.');
@@ -258,7 +274,7 @@
   const oldRenderStock=renderStock;
   renderStock=function(){oldRenderStock();addStockButtons()};
   const oldSave=save;
-  save=function(){oldSave();queue()};
+  save=function(){oldSave();queue();window.RituelGarage?.scheduleSync?.()};
   document.getElementById('stock-list')?.addEventListener('click',e=>{
    const btn=e.target.closest('[data-rituel-purchase]');if(btn)addPurchase(btn.dataset.rituelPurchase);
   });
@@ -267,8 +283,8 @@
   refresh=function(){document.querySelector('#rituel-link-panel .rituel-purchase-list')?.remove();oldRefresh();renderHistory()};
   refresh();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)queue()});
-  window.addEventListener('online',queue);
+  window.addEventListener('online',queue);\n  window.addEventListener('focus',queue);
  }
  start();
- window.RITUEL_NEXUS=Object.freeze({preview,additions,send,queue,enabled});
+ window.RITUEL_NEXUS=Object.freeze({preview,additions,send,sendHub,queue,enabled});
 })();

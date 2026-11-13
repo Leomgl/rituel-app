@@ -9,7 +9,7 @@
  const online=()=>navigator.onLine&&!!window.NexusLinkCore;
  const source=()=>window.NexusLinkCore;
  const item=id=>products.find(p=>p.id===id);
- let pairs=null,busy=false,status='',syncTimer,lastConflictCount=0;
+ let pairs=null,busy=false,status='',syncTimer,lastConflictCount=0,lastHubSync=0;
  try{pairs=JSON.parse(localStorage.getItem(KEY)||'null');}catch{}
  function display(s){status=s;render();}
  function decode(value){
@@ -232,18 +232,27 @@
     return {durable:true,status:"persisted"};
    }});
  }
- async function syncHub(){
+ async function syncHub({quiet=false}={}){
   if(busy)return;
   busy=true;
   try{
    const out=await sendHubGarage(),received=await receiveHubLocations();
-   display("LINK : "+out.productsSent+" lot(s) produits, "+out.requestsSent+
+   if(!quiet)display("LINK : "+out.productsSent+" lot(s) produits, "+out.requestsSent+
     " demande(s), "+received.acknowledged+" page(s) de lieux reçue(s)."+
     (lastConflictCount?" "+lastConflictCount+" conflit(s) à examiner.":""));
-  }catch(e){display("LINK : "+clean(e.message,95))}
+   return true;
+  }catch(e){if(!quiet)display("LINK : "+clean(e.message,95));else console.warn("Rituel Garage Hub différé",e?.message||e);return false}
   finally{busy=false}
  }
- function scheduleSync(){if(!pairs||!online())return;clearTimeout(syncTimer);syncTimer=setTimeout(sync,1500);}
+ function scheduleSync(force=false){
+  if(!pairs||!online())return;
+  const now=Date.now();if(!force&&now-lastHubSync<30000)return;
+  clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{
+   lastHubSync=Date.now();
+   const ok=window.LinkHubBus?await syncHub({quiet:true}):false;
+   if(!ok)await sync();
+  },900);
+ }
  async function changePlace(id,placeId){
   const p=item(id),current=ensure().positions[id];
   if(!pairs||!p||!current)return;
@@ -263,8 +272,8 @@
   const x=e.target.closest('[data-rgarage-product]');if(!x)return;
   changePlace(x.dataset.rgarageProduct,x.value).catch(err=>toast('Déplacement indisponible : '+clean(err.message,80)));
  });
- window.addEventListener('online',scheduleSync);
- window.addEventListener('focus',scheduleSync);
- window.RituelGarage=Object.freeze({render,decorate,sync,scheduleSync});
- if(pairs)scheduleSync();
+ window.addEventListener('online',()=>scheduleSync(true));
+ window.addEventListener('focus',()=>scheduleSync(false));
+ window.RituelGarage=Object.freeze({render,decorate,sync,syncHub,scheduleSync});
+ if(pairs)scheduleSync(true);
 })();
