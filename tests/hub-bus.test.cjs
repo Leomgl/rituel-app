@@ -20,7 +20,9 @@ test('Rituel LINK hub is ciphertext-only and dormant until the user clicks',()=>
  assert.doesNotMatch(source,/setInterval\s*\(/);
 });
 test('Rituel only publishes approved scope through LINK, no automatic budget writes',()=>{
- assert.match(rituel,/async function sendHub\(/);\n assert.match(rituel,/sendHub\(\{scopes:link\.pair\.scopes,quiet:true\}\)/);\n assert.match(rituel,/window\.addEventListener\('focus',queue\)/);
+ assert.match(rituel,/async function sendHub\(/);
+ assert.match(rituel,/sendHub\(\{scopes:link\.pair\.scopes,quiet:true\}\)/);
+ assert.match(rituel,/window\.addEventListener\('focus',queue\)/);
  assert.match(rituel,/contractId:"rituel-nexus"/);
  assert.match(rituel,/scope:item\.scope/);
  assert.match(rituel,/link\.pair\.scopes\.includes\(scope\)/);
