@@ -1,6 +1,6 @@
 /* Isolated RITUEL web origin. Public static read-through from own GitHub Pages repo.
-   Existing RITUEL push Worker and NEXUS API are reached through Cloudflare service
-   bindings; browser requests remain same-origin and no vault secrets are exposed. */
+   The RITUEL push Worker remains a service binding. LINK traffic goes directly
+   to the separate LINK Hub, and no legacy NEXUS relay is forwarded. */
 const WEB_ORIGIN='https://rituel-web.q9pfwtztsc.workers.dev';
 const STATIC_ORIGIN='https://leomgl.github.io/rituel-app';
 const ALLOWED=new Set(['/','/index.html','/app.js','/features.js','/styles.css','/push-config.js','/link-core.js','/rituel-nexus.js','/link-hub-onboard.js','/link-hub-bus.js','/trousse.js','/rituel-travel.js','/rituel-garage.js','/manifest.webmanifest','/sw.js','/icons/icon-192.png','/icons/icon-512.png','/icons/apple-touch-icon.png']);
@@ -12,11 +12,12 @@ export default {
   const origin=request.headers.get('origin');
   // Prevent cross-site posting to protected same-origin service gateways.
   if(origin&&origin!==WEB_ORIGIN)return new Response('Forbidden',{status:403});
-  if(path.startsWith('/api/v1/link/')||path.startsWith('/api/')){
-   const link=path.startsWith('/api/v1/link/');
-   const worker=link?env.NEXUS_API:env.RITUEL_PUSH;
-   if(!worker)return new Response('Gateway not configured',{status:503});
-   const destination=(link?'https://nexus-app-api.q9pfwtztsc.workers.dev':'https://rituel-app.q9pfwtztsc.workers.dev')+path+url.search;
+  if(path.startsWith('/api/v1/link/'))
+   return new Response('Ancien relais retiré — utiliser LINK',{status:410,headers:{'cache-control':'no-store'}});
+  if(path.startsWith('/api/')){
+   const worker=env.RITUEL_PUSH;
+   if(!worker)return new Response('Push gateway not configured',{status:503});
+   const destination='https://rituel-app.q9pfwtztsc.workers.dev'+path+url.search;
    const headers=new Headers(request.headers);
    // Both upstream apps already trust the original Github Pages origin. This
    // trusted edge proxy first checks the real browser origin, then rewrites it.
