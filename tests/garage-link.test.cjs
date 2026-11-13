@@ -14,7 +14,7 @@ test('Rituel retains stock ownership and installs Garage UI',()=>{
  assert.ok(!link.slice(link.indexOf('function catalogPages'),link.indexOf('async function sendCatalog')).includes('stockEntry('));
 });
 test('PWA source & isolated Worker serve the same Garage module',()=>{
- assert.match(read('sw.js'),/rituel-v1\.10\.7-link-settings/);
+ assert.match(read('sw.js'),/rituel-v1\.10\.8-link-only-auto/);
  assert.match(read('sw.js'),/rituel-garage\.js/);
  assert.match(read('edge-web/worker.js'),/rituel-garage\.js/);
  assert.match(read('link-core.js'),/'garage'/);
