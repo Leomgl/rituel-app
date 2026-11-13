@@ -261,7 +261,7 @@
   const old=pairs.requestLedger?.[id]||0,revision=old+1;
   pairs.requestLedger[id]=revision;localStorage.setItem(KEY,JSON.stringify(pairs));
   ensure().pending.push({productId:id,placeId,expectedRevision:current.revision,revision,sent:false});save();
-  renderProducts();scheduleSync();toast('Déplacement demandé à Garage. Il sera validé à sa prochaine ouverture.');
+  renderProducts();scheduleSync(true);toast('Déplacement envoyé. Garage l’appliquera automatiquement dès que tu y reviens.');
  }
  function cancel(){if(!confirm('Annuler uniquement les demandes de lieu en attente sur cet iPhone ?'))return;
   ensure().pending=[];save();renderProducts();display('Demandes locales annulées. Réceptionne Garage pour rétablir les lieux.');}
@@ -273,7 +273,8 @@
   changePlace(x.dataset.rgarageProduct,x.value).catch(err=>toast('Déplacement indisponible : '+clean(err.message,80)));
  });
  window.addEventListener('online',()=>scheduleSync(true));
- window.addEventListener('focus',()=>scheduleSync(false));
+ window.addEventListener('focus',()=>scheduleSync(true));
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleSync(true);});
  window.RituelGarage=Object.freeze({render,decorate,sync,syncHub,scheduleSync});
  // Trousse renders before this deferred module loads: hydrate the Garage UI immediately.
  decorate();render();
