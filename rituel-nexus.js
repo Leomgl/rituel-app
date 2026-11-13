@@ -223,8 +223,9 @@
    timer=null;
    try{await sendHub({scopes:link.pair.scopes,quiet:true})}
    catch(error){
-    console.warn("RITUEL LINK Hub différé",error?.message||error);
-    try{await send()}catch(e){console.warn("RITUEL LINK ancien relais différé",e?.message||e)}
+    // LINK is authoritative for automatic proposals. Keep the old relay
+    // exclusively for the manual rescue control in the settings panel.
+    console.warn("RITUEL LINK Hub différé (aucun repli automatique)",error?.message||error);
    }
   },1200);
  }
