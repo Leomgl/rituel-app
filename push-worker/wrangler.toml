@@ -3,8 +3,8 @@ main = "src/index.js"
 compatibility_date = "2026-11-01"
 
 # Push scheduling: five-minute scan, with de-duplication by device/day/type.
-[triggers]
-crons = ["*/5 * * * *"]
+# Legacy push cron intentionally disabled pending LINK notification center (#32).
+# No scheduled trigger: notifications remain suspended.
 
 # D1 database rituel-push-db (already created and linked to this Worker).
 [[d1_databases]]
