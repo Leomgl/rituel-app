@@ -3,8 +3,8 @@
    bindings; browser requests remain same-origin and no vault secrets are exposed. */
 const WEB_ORIGIN='https://rituel-web.q9pfwtztsc.workers.dev';
 const STATIC_ORIGIN='https://leomgl.github.io/rituel-app';
-const ALLOWED=new Set(['/','/index.html','/app.js','/features.js','/styles.css','/push-config.js','/link-core.js','/rituel-nexus.js','/trousse.js','/rituel-travel.js','/rituel-garage.js','/manifest.webmanifest','/sw.js','/icons/icon-192.png','/icons/icon-512.png','/icons/apple-touch-icon.png']);
-const CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+const ALLOWED=new Set(['/','/index.html','/app.js','/features.js','/styles.css','/push-config.js','/link-core.js','/rituel-nexus.js','/link-hub-onboard.js','/trousse.js','/rituel-travel.js','/rituel-garage.js','/manifest.webmanifest','/sw.js','/icons/icon-192.png','/icons/icon-512.png','/icons/apple-touch-icon.png']);
+const CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://link-app.q9pfwtztsc.workers.dev; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
 export default {
  async fetch(request,env){
   const url=new URL(request.url),path=url.pathname;
