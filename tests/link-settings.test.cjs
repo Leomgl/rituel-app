@@ -13,6 +13,6 @@ test('LINK est en tête sans retirer le jumelage historique Rituel',()=>{
  assert.match(ui,/data-r-link="send"/);
  assert.match(ui,/data-r-link="test"/);
  assert.match(ui,/id="rituel-link-auto"/);
- assert.match(html,/rituel-nexus\.js\?v=1\.10\.7/);
- assert.match(sw,/rituel-v1\.10\.7-link-settings/);
+ assert.match(html,/rituel-nexus\.js\?v=1\.10\.8/);
+ assert.match(sw,/rituel-v1\.10\.8-link-only-auto/);
 });
