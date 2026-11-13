@@ -12,7 +12,7 @@ test('New 70ml Rituals products have stable IDs, stock cards and official imager
  assert.match(app,/id:'ayurveda-hands'.*group:'Mains'.*amount:'70 ml'/);
  assert.match(html,/<option>Mains<\/option>/);
  assert.match(app,/stock:\{\}/);
- assert.match(read('sw.js'),/rituel-v1\.10\.4/);
+ assert.match(read('sw.js'),/rituel-v1\.10\.5/);
  assert.match(html,/app\.js\?v=1\.10\.0/);
 });
 test('Body lotion is alternative to Sakura and hands are an optional evening step',()=>{
