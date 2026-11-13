@@ -29,6 +29,6 @@ test('Rituel only publishes approved scope through LINK, no automatic budget wri
  assert.match(rituel,/selected\.some\(scope=>!allowed\.includes\(scope\)\)/);
  assert.match(rituel,/window\.LinkHubBus\.publish/);
  assert.match(html,/link-hub-bus\.js\?v=1\.10\.2/);
- assert.match(sw,/rituel-v1\.10\.6/);
+ assert.match(sw,/rituel-v1\.10\.7-link-settings/);
  assert.match(sw,/link-hub-bus\.js/);
 });
