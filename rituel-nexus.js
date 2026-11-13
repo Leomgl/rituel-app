@@ -49,23 +49,16 @@
    '<p class="push-fine">Ne désinstalle pas cette version avant d’avoir vérifié la restauration dans la nouvelle.</p>';
    return;
   }
-  const count=(link.outbox||[]).length;
-  root.innerHTML='<h2>LINK · Connexions</h2>'+ 
-   '<p class="muted">LINK centralise les autorisations et les diagnostics. Les échanges chiffrés se poursuivent sans modifier tes produits ni tes clés.</p>'+ 
-   '<a class="secondary-button" href="https://link-app.q9pfwtztsc.workers.dev/" target="_blank" rel="noopener noreferrer">Gérer dans LINK ↗</a>'+ 
-   '<p class="push-fine">Les anciens jumelages sont conservés pour les échanges existants et le retour arrière.</p>'+ 
-   '<details class="rituel-legacy-link"><summary>Ancien jumelage NEXUS · dépannage</summary><h3>NEXUS LINK · RITUEL</h3>'+
-   '<p class="muted">Produits à racheter, rappels, achats réellement confirmés et suivi des routines vers NEXUS. Chiffré, avec validation à la réception.</p>'+
+  root.innerHTML='<h2>LINK · Connexions</h2>'+
+   '<p class="muted">Toutes les propositions pour Nexus passent uniquement par LINK. Le jumelage chiffré est généré sur tes appareils, sans ancien relais.</p>'+
+   '<a class="secondary-button" href="https://link-app.q9pfwtztsc.workers.dev/" target="_blank" rel="noopener noreferrer">Gérer dans LINK ↗</a>'+
    (link.pair?
-    '<div class="push-status">Jumelage actif · '+link.pair.scopes.length+' permission(s) · '+count+' proposition(s) envoyée(s)</div>'+
-    '<button type="button" class="primary-button" data-r-link="send">Envoyer les propositions vers NEXUS ↗</button>'+
-    '<button type="button" class="secondary-button" data-r-link="test">Envoyer un message test</button>'+
-    '<div class="switch-row"><div><b>Envoi automatique (facultatif)</b><small>Quand RITUEL est ouverte et connectée. La validation dans NEXUS reste manuelle.</small></div><label class="switch"><input type="checkbox" id="rituel-link-auto" '+(auto()?'checked':'')+'><span></span></label></div>'+
-    '<p class="push-fine">Pour changer les permissions ou révoquer, utilise NEXUS → Réglages → Applications & connexions.</p>':
-    '<label class="field"><span>Code privé NEXUS LINK (NXL1…)</span><textarea id="rituel-link-code" rows="3" autocomplete="off" spellcheck="false" style="width:100%;resize:vertical" placeholder="Colle ton code de jumelage RITUEL"></textarea></label>'+
-    '<button class="primary-button" type="button" data-r-link="join">Jumeler RITUEL avec NEXUS ↗</button>')+
-   '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p></details>'+
-   '<div class="field"><label for="rituel-hub-code">Accès au centre LINK (invitation Rituel uniquement)</label>'+
+    '<div class="push-status">Clé privée LINK configurée · '+link.pair.scopes.length+' permission(s)</div>'+
+    '<div class="switch-row"><div><b>Envoi automatique via LINK</b><small>Quand Rituel est ouverte et connectée ; Nexus examine les propositions.</small></div><label class="switch"><input type="checkbox" id="rituel-link-auto" '+(auto()?'checked':'')+'><span></span></label></div>':
+    '<label class="field"><span>Clé de jumelage chiffrée créée dans Nexus (NXL1…)</span><textarea id="rituel-link-code" rows="3" autocomplete="off" spellcheck="false" style="width:100%;resize:vertical" placeholder="Colle le code privé Rituel"></textarea></label>'+
+    '<button class="primary-button" type="button" data-r-link="join">Associer Rituel à Nexus</button>')+
+   '<p class="push-fine">Le partage reste soumis aux permissions choisies dans Nexus. Une suggestion d’achat ne devient jamais une dépense sans confirmation.</p>'+
+   '<div class="field"><label for="rituel-hub-code">Invitation du centre LINK (Rituel uniquement)</label>'+
    '<textarea id="rituel-hub-code" rows="2" autocomplete="off" spellcheck="false" placeholder="LHI1.rituel.…"></textarea></div>'+
    '<button type="button" class="secondary-button" data-r-link="enroll-hub">Inscrire Rituel dans LINK</button>'+
    '<div class="field"><label for="rituel-hub-scope">Type de données à envoyer à LINK</label>'+
@@ -73,17 +66,18 @@
    '<option value="restock_task">Rappel de stock</option><option value="restock_purchase">Suggestion d’achat</option>'+
    '<option value="routine_schedule">Événement de routine</option><option value="product_paid">Achat réellement confirmé</option></select></div>'+
    '<button type="button" class="secondary-button" data-r-link="send-hub">Envoyer via LINK (chiffré)</button>'+
-   '<p class="push-fine">Aucune donnée ne part sans autorisation de cette portée dans LINK. Nexus examine chaque proposition avant de l’ajouter.</p>';
+   '<p class="push-fine">Aucun produit, montant ou bilan ne quitte Rituel sans consentement et chiffrement.</p>';
+
  }
  async function enrollHub(){
   const code=document.getElementById('rituel-hub-code')?.value||'';
   if(!window.LinkHubOnboard)throw Error('MODULE_LINK_INDISPONIBLE');
   await window.LinkHubOnboard.enroll(code);
-  toast('Rituel inscrit dans LINK. Les anciennes connexions restent en place.');
+  toast('Rituel inscrit dans LINK. Prêt pour les échanges chiffrés.');
   refresh();
  }
  async function sendHub({scopes=null,quiet=false}={}){
-  if(!enabled()||!link.pair)throw Error("Ancien jumelage chiffré nécessaire pour conserver les identifiants.");
+  if(!enabled()||!link.pair)throw Error("Clé de jumelage chiffrée Nexus nécessaire.");
   if(!window.LinkHubBus)throw Error("MODULE_TRANSPORT_LINK_INDISPONIBLE");
   if(busy)return {busy:true,sent:0,unchanged:0};
   const allowed=link.pair.scopes.filter(x=>["routine_summary","restock_task","restock_purchase","routine_schedule","product_paid"].includes(x));

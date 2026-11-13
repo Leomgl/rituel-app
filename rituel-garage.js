@@ -28,7 +28,7 @@
   const panel=document.getElementById('trousse-garage-panel');if(!panel)return;
   const count=Object.keys(ensure().positions||{}).length;
   panel.innerHTML='<div class="trousse-travel-head"><span class="eyebrow">RITUEL × GARAGE</span><h3>Mes objets et leurs lieux</h3><p>Rituel garde tes stocks et routines. Garage conserve les emplacements et les ensembles. Les changements de lieu sont transmis de façon chiffrée quand les apps sont ouvertes.</p></div>'+
-   (pairs?'<div class="trousse-nexus-status">Connecté · '+count+' produit(s) localisés</div><div class="trousse-travel-actions"><button type="button" data-rgarage="sync">Synchroniser avec Garage</button><button type="button" data-rgarage="hub-sync">Échanger via LINK</button>'+
+   (pairs?'<div class="trousse-nexus-status">Connecté · '+count+' produit(s) localisés</div><div class="trousse-travel-actions"><button type="button" data-rgarage="hub-sync">Échanger via LINK</button>'+
     (ensure().pending.length?'<button type="button" data-rgarage="cancel">Annuler mes changements en attente ('+ensure().pending.length+')</button>':'')+
     '<button type="button" data-rgarage="unlink">Dissocier</button></div>':
     '<label class="trousse-garage-label">Code privé copié depuis Garage → Réglages<textarea id="rituel-garage-code" rows="4" placeholder="GRL1…"></textarea></label><button type="button" class="trousse-travel-connect" data-rgarage="join">Connecter mes produits à Garage</button>')+
@@ -249,8 +249,8 @@
   const now=Date.now();if(!force&&now-lastHubSync<30000)return;
   clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{
    lastHubSync=Date.now();
-   const ok=window.LinkHubBus?await syncHub({quiet:true}):false;
-   if(!ok)await sync();
+   // Only LINK runs automatically; failed deliveries remain queued.
+   if(window.LinkHubBus)await syncHub({quiet:true});
   },900);
  }
  async function changePlace(id,placeId){

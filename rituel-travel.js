@@ -11,7 +11,7 @@
  const t=()=>state.trousse;
  const entry=id=>t()?.nexusTrips?.find(x=>x.eventId===id);
  function validate(msg){
-  if(msg.invalid||msg.scope!=='trip_context'||typeof msg.id!=='string'||!/^[-a-f0-9]{36}$/i.test(msg.id))return null;
+  if(msg.invalid||msg.scope!=='trip_context'||typeof msg.id!=='string'||!(/^[-a-f0-9]{36}$/i.test(msg.id)||/^msg_[A-Za-z0-9_-]{24}$/.test(msg.id)))return null;
   const p=msg.payload;
   if(!p||p.type!=='nexus.travel.v1'||p.destination!=='rituel'||!p.eventId||
    typeof p.eventId!=='string'||p.eventId.length>100||typeof p.title!=='string'||p.title.length>100||
@@ -46,7 +46,7 @@
     '<p class="trousse-nexus-note">Dans NEXUS → Réglages → Voyages vers RITUEL, crée la liaison, puis colle le code privé ci-dessous.</p>'+
     '<textarea id="rituel-travel-code" rows="3" placeholder="Code NXL1…" aria-label="Code privé de jumelage voyage"></textarea>'+
     '<button type="button" class="trousse-travel-connect" data-travel-action="join">Jumeler mes voyages</button>')+
-   '<p class="trousse-nexus-note">Tes produits et cases cochées restent dans RITUEL. Le relais reçoit uniquement des messages chiffrés.</p>';
+   '<p class="trousse-nexus-note">Tes produits et cases cochées restent dans RITUEL. LINK transmet uniquement des messages chiffrés.</p>';
  }
  async function join(){
   const code=document.getElementById('rituel-travel-code')?.value?.trim();
@@ -64,22 +64,41 @@
  async function refresh(){
   if(!pair||busy)return;
   if(!navigator.onLine){toast('Internet requis pour recevoir les séjours.');return}
+  if(!window.LinkHubBus){toast('Module LINK indisponible : mets Rituel à jour.');return}
   busy=true;
   try{
-   const messages=await window.NexusLinkCore.inbox(pair),received=[];
-   for(const msg of messages){
-    const item=validate(msg);if(!item)continue;
-    const history=entry(item.payload.eventId);
-    if(history&&history.revision>=item.revision){
-     await window.NexusLinkCore.acknowledge(pair,item.id);continue;
-    }
-    // Last revision wins; reject duplicates from previous partial attempts.
-    const i=received.findIndex(v=>v.payload.eventId===item.payload.eventId);
-    if(i<0)received.push(item);
-    else if(received[i].revision<item.revision)received[i]=item;
-   }
-   pending=received;toast(pending.length+' séjour(s) à examiner.');
-  }catch(e){toast('Réception impossible : '+String(e.message).slice(0,90))}
+   const result=await window.LinkHubBus.receive({pair,from:"nexus",contractId:"nexus-rituel",
+    scopes:["trip_context"],limit:30,persist:async opened=>{
+     const msg=validate({id:opened.messageId,scope:opened.scope,
+      revision:opened.revision,payload:opened.payload});
+     if(!msg)throw Error("VOYAGE_NEXUS_NON_VALIDÉ");
+     if(!Array.isArray(t().nexusTrips))t().nexusTrips=[];
+     const history=entry(msg.payload.eventId);
+     const previous=Array.isArray(t().nexusTravelPending)?t().nexusTravelPending:[];
+     if((history?.revision||0)>=msg.revision)return {durable:true,status:"persisted"};
+     const current=previous.find(v=>v.payload?.eventId===msg.payload.eventId);
+     if(current?.revision>=msg.revision)return {durable:true,status:"persisted"};
+     const next=previous.filter(v=>v.payload?.eventId!==msg.payload.eventId);
+     if(msg.payload.deleted!==true)next.push(msg);
+     if(msg.payload.deleted===true){
+      const record={eventId:msg.payload.eventId,revision:msg.revision,
+       status:"cancelled",kitId:history?.kitId||""};
+      if(history)Object.assign(history,record);else t().nexusTrips.push(record);
+      // Existing packed kits are never destroyed by a deleted calendar event.
+     }
+     t().nexusTravelPending=next;
+     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+     const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");
+     if(!Array.isArray(saved.trousse?.nexusTravelPending)||
+      !saved.trousse.nexusTravelPending.every(v=>v.payload?.eventId!==msg.payload.eventId||
+       v.revision>=msg.revision))throw Error("RITUEL_VOYAGE_NON_PERSISTÉ");
+     pending=next;
+     return {durable:true,status:"persisted"};
+    }});
+   pending=Array.isArray(t().nexusTravelPending)?t().nexusTravelPending:[];
+   toast(result.acknowledged+' séjour(s) confirmé(s) via LINK.'+
+    (result.failed?' · '+result.failed+' à réessayer.':''));
+  }catch(e){toast('LINK : '+String(e.message||e).slice(0,90))}
   finally{busy=false;render()}
  }
  async function resolve(id,action){
@@ -113,10 +132,12 @@
     if(old)Object.assign(old,record);else t().nexusTrips.push(record);
    }
    // Verify write before ACK: never delete a server message before local persistence.
-   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
    pending=pending.filter(x=>x.id!==id);
+   t().nexusTravelPending=pending;
+   // The message was already ACKed only after durable receipt in refresh().
+   // Persist the accept/dismiss decision before updating the visible page.
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
    window.RITUEL_TROUSSE?.hydrate();
-   try{await window.NexusLinkCore.acknowledge(pair,id);}catch{ /* revisit + idempotent ACK next refresh */ }
    toast(action==='accept'?'Ta trousse de voyage est prête.':'Suggestion ignorée.');
   }catch(e){toast('Enregistrement impossible : '+String(e.message).slice(0,85))}
   finally{busy=false;render()}
@@ -125,7 +146,7 @@
   if(!pair||!confirm('Révoquer uniquement la réception de voyages Nexus ? Les trousses et l’autre lien RITUEL restent intacts.'))return;
   try{await window.NexusLinkCore.revoke(pair);}
   catch(e){if(e.message!=='UNAUTHORIZED'){toast('Révocation impossible : '+e.message.slice(0,70));return}}
-  localStorage.removeItem(KEY);pair=null;pending=[];render();toast('Liaison voyage retirée.');
+  localStorage.removeItem(KEY);pair=null;pending=[];t().nexusTravelPending=[];localStorage.setItem(STORAGE_KEY,JSON.stringify(state));render();toast('Liaison voyage locale retirée.');
  }
  function init(){
   const root=document.getElementById('trousse-kits');if(!root)return;
@@ -136,7 +157,14 @@
    if(action==='accept'||action==='dismiss')resolve(id,action);
    if(action==='revoke')revoke();
   });
-  render();
+  pending=Array.isArray(t().nexusTravelPending)?t().nexusTravelPending.filter(v=>validate(v)):[];
+  let lastPull=0;
+  const wake=()=>{if(!pair||!navigator.onLine||document.hidden||Date.now()-lastPull<15000)return;
+   lastPull=Date.now();void refresh();};
+  window.addEventListener('online',wake);
+  window.addEventListener('focus',wake);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
+  render();if(pair)window.setTimeout(wake,1000);
  }
  window.RituelTravel=Object.freeze({render,init,validate,isLinked:()=>!!pair});
  init();
