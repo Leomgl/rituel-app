@@ -25,6 +25,7 @@
   root.addEventListener('click',e=>{
    const action=e.target.closest('[data-r-link]')?.dataset.rLink;
    if(action==='join')join();
+   if(action==='enroll-hub')enrollHub().catch(err=>toast('LINK : '+err.message.slice(0,95)));
    if(action==='send')send().catch(err=>toast('Envoi impossible : '+err.message.slice(0,90)));
    if(action==='refresh')refresh();
    if(action==='test')test().catch(err=>toast('Test impossible : '+err.message.slice(0,90)));
@@ -56,7 +57,17 @@
     '<p class="push-fine">Pour changer les permissions ou révoquer, utilise NEXUS → Réglages → Applications & connexions.</p>':
     '<label class="field"><span>Code privé NEXUS LINK (NXL1…)</span><textarea id="rituel-link-code" rows="3" autocomplete="off" spellcheck="false" style="width:100%;resize:vertical" placeholder="Colle ton code de jumelage RITUEL"></textarea></label>'+
     '<button class="primary-button" type="button" data-r-link="join">Jumeler RITUEL avec NEXUS ↗</button>')+
-   '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p>';
+   '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p>'+
+   '<div class="field"><label for="rituel-hub-code">Accès au centre LINK (invitation Rituel uniquement)</label>'+
+   '<textarea id="rituel-hub-code" rows="2" autocomplete="off" spellcheck="false" placeholder="LHI1.rituel.…"></textarea></div>'+
+   '<button type="button" class="secondary-button" data-r-link="enroll-hub">Inscrire Rituel dans LINK</button>';
+ }
+ async function enrollHub(){
+  const code=document.getElementById('rituel-hub-code')?.value||'';
+  if(!window.LinkHubOnboard)throw Error('MODULE_LINK_INDISPONIBLE');
+  await window.LinkHubOnboard.enroll(code);
+  toast('Rituel inscrit dans LINK. Les anciennes connexions restent en place.');
+  refresh();
  }
  async function join(){
   const raw=document.getElementById('rituel-link-code')?.value;
