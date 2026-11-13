@@ -283,7 +283,8 @@
   refresh=function(){document.querySelector('#rituel-link-panel .rituel-purchase-list')?.remove();oldRefresh();renderHistory()};
   refresh();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)queue()});
-  window.addEventListener('online',queue);\n  window.addEventListener('focus',queue);
+  window.addEventListener('online',queue);
+  window.addEventListener('focus',queue);
  }
  start();
  window.RITUEL_NEXUS=Object.freeze({preview,additions,send,sendHub,queue,enabled});
