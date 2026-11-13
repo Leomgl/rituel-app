@@ -7,8 +7,8 @@ test('Rituel ne retourne jamais automatiquement vers le relais historique',()=>{
  const auto=app.slice(from,to);
  assert.match(auto,/await sendHub\(\{scopes:link\.pair\.scopes,quiet:true\}\)/);
  assert.doesNotMatch(auto,/await send\(/,'ancien relais interdit en automatique');
- assert.match(app,/data-r-link="send"/,'action manuelle historique conservée');
- assert.match(app,/await window\.NexusLinkCore\.publish\(link\.pair/,'action de secours toujours possible');
- assert.match(src('index.html'),/rituel-nexus\.js\?v=1\.10\.8/);
- assert.match(src('sw.js'),/rituel-v1\.10\.8-link-only-auto/);
+ assert.doesNotMatch(app,/data-r-link="send"/,'aucun ancien bouton d’envoi');
+ assert.match(app,/data-r-link="send-hub"/,'envoi LINK conservé');
+ assert.match(src('index.html'),/rituel-nexus\.js\?v=1\.10\.9/);
+ assert.match(src('sw.js'),/rituel-v1\.10\.9-hub-only/);
 });
