@@ -1,4 +1,4 @@
-const CACHE = 'rituel-v1.10.6';
+const CACHE = 'rituel-v1.10.7-link-settings';
 const FILES = ['./','./index.html','./styles.css','./app.js','./features.js','./link-core.js','./rituel-nexus.js','./link-hub-onboard.js','./link-hub-bus.js','./trousse.js','./rituel-travel.js','./rituel-garage.js','./push-config.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));
