@@ -21,7 +21,9 @@
   if(document.getElementById('rituel-link-panel'))return;
   const settings=document.getElementById('settings-view');if(!settings)return;
   const root=document.createElement('section');root.className='panel';root.id='rituel-link-panel';
-  settings.appendChild(root);
+  // Afficher LINK avant les autres réglages sans modifier les flux de données.
+  const firstPanel=settings.querySelector('.panel');
+  if(firstPanel)settings.insertBefore(root,firstPanel);else settings.appendChild(root);
   root.addEventListener('click',e=>{
    const action=e.target.closest('[data-r-link]')?.dataset.rLink;
    if(action==='join')join();
@@ -48,7 +50,11 @@
    return;
   }
   const count=(link.outbox||[]).length;
-  root.innerHTML='<h2>NEXUS LINK · RITUEL</h2>'+
+  root.innerHTML='<h2>LINK · Connexions</h2>'+ 
+   '<p class="muted">LINK centralise les autorisations et les diagnostics. Les échanges chiffrés se poursuivent sans modifier tes produits ni tes clés.</p>'+ 
+   '<a class="secondary-button" href="https://link-app.q9pfwtztsc.workers.dev/" target="_blank" rel="noopener noreferrer">Gérer dans LINK ↗</a>'+ 
+   '<p class="push-fine">Les anciens jumelages sont conservés pour les échanges existants et le retour arrière.</p>'+ 
+   '<details class="rituel-legacy-link"><summary>Ancien jumelage NEXUS · dépannage</summary><h3>NEXUS LINK · RITUEL</h3>'+
    '<p class="muted">Produits à racheter, rappels, achats réellement confirmés et suivi des routines vers NEXUS. Chiffré, avec validation à la réception.</p>'+
    (link.pair?
     '<div class="push-status">Jumelage actif · '+link.pair.scopes.length+' permission(s) · '+count+' proposition(s) envoyée(s)</div>'+
@@ -58,7 +64,7 @@
     '<p class="push-fine">Pour changer les permissions ou révoquer, utilise NEXUS → Réglages → Applications & connexions.</p>':
     '<label class="field"><span>Code privé NEXUS LINK (NXL1…)</span><textarea id="rituel-link-code" rows="3" autocomplete="off" spellcheck="false" style="width:100%;resize:vertical" placeholder="Colle ton code de jumelage RITUEL"></textarea></label>'+
     '<button class="primary-button" type="button" data-r-link="join">Jumeler RITUEL avec NEXUS ↗</button>')+
-   '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p>'+
+   '<p class="push-fine">Les données ne sont jamais envoyées avant ton accord. Une hausse de stock ne signifie pas automatiquement un achat ; seules tes confirmations explicites peuvent devenir une dépense réelle.</p></details>'+
    '<div class="field"><label for="rituel-hub-code">Accès au centre LINK (invitation Rituel uniquement)</label>'+
    '<textarea id="rituel-hub-code" rows="2" autocomplete="off" spellcheck="false" placeholder="LHI1.rituel.…"></textarea></div>'+
    '<button type="button" class="secondary-button" data-r-link="enroll-hub">Inscrire Rituel dans LINK</button>'+
