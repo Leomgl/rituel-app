@@ -275,5 +275,7 @@
  window.addEventListener('online',()=>scheduleSync(true));
  window.addEventListener('focus',()=>scheduleSync(false));
  window.RituelGarage=Object.freeze({render,decorate,sync,syncHub,scheduleSync});
+ // Trousse renders before this deferred module loads: hydrate the Garage UI immediately.
+ decorate();render();
  if(pairs)scheduleSync(true);
 })();
