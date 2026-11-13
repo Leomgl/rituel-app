@@ -118,7 +118,7 @@ function dbOpen(name,store,readonly=false){
  const request=indexedDB.open(name,1);
  return new Promise((resolve,reject)=>{
   request.onupgradeneeded=()=>{
-   if(!readonly&&!request.result.objectStoreNames.contains(store))request.result.createObjectStore(store);
+   if(!request.result.objectStoreNames.contains(store))request.result.createObjectStore(store);
   };
   request.onsuccess=()=>resolve(request.result);
   request.onerror=()=>reject(Error("LOCAL_HUB_STORAGE_UNAVAILABLE"));
