@@ -249,8 +249,8 @@
   const now=Date.now();if(!force&&now-lastHubSync<30000)return;
   clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{
    lastHubSync=Date.now();
-   const ok=window.LinkHubBus?await syncHub({quiet:true}):false;
-   if(!ok)await sync();
+   // Only LINK runs automatically; failed deliveries remain queued.
+   if(window.LinkHubBus)await syncHub({quiet:true});
   },900);
  }
  async function changePlace(id,placeId){
